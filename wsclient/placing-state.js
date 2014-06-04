@@ -20,6 +20,11 @@ module.exports = function(emit, actions, states) {
     },
     13: function(){
       return states.playing;
+    },
+    //workaround für bug im server!!
+    29: function() {
+      emit(actions.attack([]));
+      return states.playing;
     }
   });
 };
