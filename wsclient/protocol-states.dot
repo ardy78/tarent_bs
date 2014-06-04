@@ -1,0 +1,10 @@
+digraph G {
+  start -> joining[label="/play"]
+  joining -> end[label="00 busy"];
+  joining -> joining[label="01 helo/rename"];
+  joining -> placing[label="10 place ships/place"]
+  placing -> placing[label="11 next ship/place"]
+  placing -> playing[label="13 all ready"]
+  playing -> playing[label="29,31,32,91,94,95 / action"]
+  playing -> end[label="38"]
+}
