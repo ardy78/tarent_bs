@@ -1,5 +1,8 @@
+var obj = require("./utils").object;
+var defaultState = require("./default-state");
+
 module.exports=function(emit,actions,states){
-  return {
+  return obj(defaultState(states),{
     name:"initial",
     enter: function(){
       emit("play");
@@ -13,5 +16,5 @@ module.exports=function(emit,actions,states){
     1: function(){
       emit("rename "+actions.name());
     }
-  }
+  });
 };
