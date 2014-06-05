@@ -1,3 +1,5 @@
+var Promise = require("promise");
+
 module.exports = function(initialState) {
   var state = initialState;
 

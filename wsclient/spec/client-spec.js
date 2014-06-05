@@ -1,4 +1,6 @@
 var Client = require("../client");
+var Promise = require("promise");
+
 describe("The protocol-client", function() {
   var client, stateA, stateB, actions;
   var emitted;

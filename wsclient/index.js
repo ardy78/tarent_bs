@@ -25,11 +25,12 @@ ws.on('open', function() {
   };
   var attacksCounter = 0;
   var actions = {
-    name: function() {
+    name: function(emitName) {
+      //emitName("tarent bullship");
       return "tarent bullship";
     },
-    ships: function() {
-      return [
+    ships: function(emit) {
+      emit([
         mockShip("a1,a2,a3,a4,a5"),
         mockShip("g1,g2,g3,g4,g5"),
         mockShip("c1,c2,c3,c4"),
@@ -37,13 +38,14 @@ ws.on('open', function() {
         mockShip("i1,i2,i3"),
         mockShip("e1,e2,e3"),
         mockShip("f7,f8"),
-        mockShip("i8,i9")];
+        mockShip("i8,i9")
+      ]);
     },
-    attack: function(messages) {
-      console.log("attack #"+attacksCounter++);
+    attack: function(messages, callback) {
+      console.log("attack #" + attacksCounter++);
       var col = Math.floor(Math.random() * 10);
       var row = Math.floor(Math.random() * 10);
-      return "ABCDEFGHIJ" [col] + row;
+      callback("ABCDEFGHIJ" [col] + row);
     }
 
   };
@@ -52,12 +54,12 @@ ws.on('open', function() {
   states.initial = require('./initial-state')(emit, actions, states);
   states.placing = require('./placing-state')(emit, actions, states);
   states.playing = require('./playing-state')(emit, actions, states);
-  
+
   client = Client(states.initial);
 
 });
 ws.on('message', function(data, flags) {
-  console.log("incoming",data);
+  console.log("incoming", data);
   client.process(Message(data));
 });
 /*

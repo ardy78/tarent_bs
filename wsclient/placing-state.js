@@ -12,8 +12,10 @@ module.exports = function(emit, actions, states) {
   return obj(defaultState(states), {
     name: "placing",
     enter: function() {
-      ships = actions.ships();
-      placeShip();
+      actions.ships(function(theShips) {
+        ships = theShips;
+        placeShip();
+      });
     },
     11: function() {
       placeShip();
@@ -23,7 +25,9 @@ module.exports = function(emit, actions, states) {
     },
     //workaround für bug im server!!
     29: function() {
-      emit(actions.attack([]));
+      actions.attack([],function(attackCmd) {
+        emit(attackCmd);
+      });
       return states.playing;
     }
   });

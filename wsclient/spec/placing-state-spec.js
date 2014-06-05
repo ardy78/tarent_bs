@@ -6,20 +6,9 @@ var mockShip = function(str) {
     }
   };
 }
-/*
- 
-        Ship([A,1],[A,5]),
-        Ship([G,1],[G,5]),
-        Ship([C,1],[C,4]),
-        Ship([C,6],[C,9]),
-        Ship([I,1],[I,3]),
-        Ship([E,1],[E,3]),
-        Ship([F,7],[G,7]),
-        Ship([I,8],[I,9])        
- */
 
 describe("The 'Placing Ships' state", function() {
-
+  var emitCBList = [];
   var state, emit, actions, states, emitted;
   beforeEach(function() {
     emitted = [];
@@ -27,12 +16,16 @@ describe("The 'Placing Ships' state", function() {
     states = {};
     emit = function(msg) {
       emitted.push(msg);
+      while(emitCBList.length>0){
+        emitCBList.pop()(msg)
+      }
     };
     state = PlacingState(emit, actions, states);
-    actions.ships = function() {
-      return [
+    actions.ships = function(emitPlacement) {
+      emitPlacement ([
         mockShip("A1,A2,A3,A4,A5"),
-        mockShip("G1,G2,G3,G4,G5")];
+        mockShip("G1,G2,G3,G4,G5")
+      ]);
     };
   });
 
@@ -40,24 +33,37 @@ describe("The 'Placing Ships' state", function() {
     expect(state.name).toBe("placing");
   });
 
-  it("asks for ship placements and places first ship when entered", function() {
+  it("asks for ship placements and places first ship when entered", function(done) {
+    emitCBList.push(function(msg) {
+      expect(msg).toEqual("A1,A2,A3,A4,A5");
+      done();
+    });
     state.enter();
-    expect(emitted).toEqual(["A1,A2,A3,A4,A5"]);
   });
 
-  it("asks for the next ship and emits it to the server upon receiving 11 place next", function() {
+  it("asks for the next ship and emits it to the server upon receiving 11 place next", function(done) {
+//    emitCBList.push(function(msg) {
+//      expect(msg).toEqual("A1,A2,A3,A4,A5");
+//    });
     state.enter();
-    state[11]("lustige message");
-    expect(emitted).toEqual(["A1,A2,A3,A4,A5", "G1,G2,G3,G4,G5"]);
+  
+    emitCBList.push(function(msg) {
+      expect(msg).toEqual("G1,G2,G3,G4,G5");
+      done();
+    });
+
+    expect(state[11]("lustige message")).toBeUndefined();
   });
 
-  it("transitions to state playing when receiving 13 all ready",function(){
-    states.playing="playing";
+  it("transitions to state playing when receiving 13 all ready", function() {
+    states.playing = "playing";
     expect(state[13]()).toBe(states.playing);
   });
 
-  it("transitions to state error when recieving a 90 invalid ship",function(){
-    states.error="error";
-    expect(state.defaultAction({code:90})).toBe(states.error);
+  it("transitions to state error when recieving a 90 invalid ship", function() {
+    states.error = "error";
+    expect(state.defaultAction({
+      code: 90
+    })).toBe(states.error);
   });
 });

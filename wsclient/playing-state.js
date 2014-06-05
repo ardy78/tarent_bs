@@ -5,7 +5,11 @@ module.exports = function(emit, actions, states) {
   var msgList = [];
   var dflt = defaultState(states);
   var yourTurn = function() {
-    emit(actions.attack(msgList));
+    // toEmit is a field,
+    // TODO: implement special attacks
+    actions.attack(msgList, function(toEmit) {
+      emit(toEmit);
+    });
     msgList = [];
   };
   return obj(dflt, {
