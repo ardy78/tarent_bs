@@ -1,0 +1,3 @@
+[submodule "gnuprolog-redisclient"]
+	path = gnuprolog-redisclient
+	url = git@github.com:ldegen/gnuprolog-redisclient.git
