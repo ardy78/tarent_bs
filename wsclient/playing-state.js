@@ -16,10 +16,16 @@ module.exports = function(emit, actions, states) {
     name: "playing",
     defaultAction: function(msg) {
       msgList.push(msg);
-      if([29,31,32].indexOf(msg.code)>-1){
+      if ([29, 31, 32].indexOf(msg.code) > -1) {
         return yourTurn();
       }
       return dflt.defaultAction(msg);
+    },
+    37: function() {
+      process.exit(1);
+    },
+    33: function() {
+      process.exit(0);
     }
   });
 };
