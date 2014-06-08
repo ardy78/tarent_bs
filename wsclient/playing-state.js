@@ -3,6 +3,7 @@ var defaultState = require("./default-state");
 var redis = require("redis");
 
 module.exports = function(emit, actions, states) {
+  var won = false; //hack to ignore second win-message
   var msgList = [];
   var dflt = defaultState(states);
   var redisClient;
@@ -36,9 +37,12 @@ module.exports = function(emit, actions, states) {
       process.exit(1);
     },
     33: function() {
-      redisClient.publish("battleship_winner",actions.name());
-      emit("disconnect");
-      process.exit(0);
+      if( !won ){
+        won = true;
+        redisClient.publish("battleship_winner",actions.name());
+        emit("disconnect");
+        process.exit(0);
+      }
     }
   });
 };
