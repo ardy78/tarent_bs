@@ -33,7 +33,7 @@ module.exports = function() {
   return {
     name: function(emitName) {
       //emitName("tarent bullship");
-      return "tarent bullship";
+      return "stateKeeper";
     },
     ships: function(emit) {
       emit([
