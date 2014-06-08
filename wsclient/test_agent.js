@@ -20,9 +20,9 @@ var agent1      = command.agent1    || "default";
 var agent2      = command.agent2    || "default";
 var repetitions = command.rep       || 100;
 
-var wins = [];
-var losses = [];
-var roundsPlayed = 0;
+var wins = {};
+var losses = {};
+var agents = [];
 
 var redis = require('redis');
 var redisClient = redis.createClient();
@@ -32,19 +32,20 @@ redisClient.on("error", function(err){
 });
 
 redisClient.on( "message", function(channel, message){ 
+  var roundsPlayed=0;
   console.log( "Channel '" + channel + "' published: " + message );
 
   if( channel === 'battleship_winner') { 
     wins[message] = wins[message] ? (wins[message] + 1) : 1;
-    console.log('Rounds played',roundsPlayed); 
     for( agent in wins ){ 
+      roundsPlayed += wins[agent];
       console.log(agent,': ', wins[agent]);
     }
+    console.log('Rounds played',roundsPlayed ); 
   }
 
   if( channel === 'battleship_loser') { 
     losses[message] = losses[message] ? (losses[message] + 1) : 1;
-    roundsPlayed++;
   }
 });
 
