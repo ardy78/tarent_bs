@@ -8,8 +8,7 @@ module.exports = function() {
   };
   var attacksCounter = 0;
   return {
-    name: function(emitName) {
-      //emitName("tarent bullship");
+    name: function() {
       return "tarent bullship";
     },
     ships: function(emit) {
