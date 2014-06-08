@@ -1,7 +1,7 @@
 module.exports=function(data){
   var txt = data.toString();
   var matches = txt.match(/^(\d\d): (.+)$/);
-  var fieldMatches = txt.match(/[A-J]\d/);
+  var fieldMatches = txt.match(/([A-J]\d)/);
   var c;
   try{
     c=parseInt(matches[1]);
