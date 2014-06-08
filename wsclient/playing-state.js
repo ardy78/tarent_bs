@@ -33,12 +33,12 @@ module.exports = function(emit, actions, states) {
     37: function() {
       redisClient.publish("battleship_loser",actions.name());
       emit("disconnect");
-      //process.exit(1);
+      process.exit(1);
     },
     33: function() {
       redisClient.publish("battleship_winner",actions.name());
       emit("disconnect");
-      //process.exit(0);
+      process.exit(0);
     }
   });
 };
