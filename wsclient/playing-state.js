@@ -1,9 +1,18 @@
 var obj = require("./utils").object;
 var defaultState = require("./default-state");
+var redis = require("redis");
 
 module.exports = function(emit, actions, states) {
   var msgList = [];
   var dflt = defaultState(states);
+  var redisClient;
+  redisClient = redis.createClient();
+
+  redisClient.on("error", function (err) {
+    console.log("Error " + err);
+    console.log('redisClient', redisClient );
+  });
+
   var yourTurn = function() {
     // toEmit is a field,
     // TODO: implement special attacks
@@ -22,10 +31,14 @@ module.exports = function(emit, actions, states) {
       return dflt.defaultAction(msg);
     },
     37: function() {
-      process.exit(1);
+      redisClient.publish("battleship_loser",actions.name());
+      emit("disconnect");
+      //process.exit(1);
     },
     33: function() {
-      process.exit(0);
+      redisClient.publish("battleship_winner",actions.name());
+      emit("disconnect");
+      //process.exit(0);
     }
   });
 };
