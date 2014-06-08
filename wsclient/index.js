@@ -2,13 +2,12 @@ var serverUrl = "ws://localhost:40000/battle"
 var agent = "default";
 console.log(process.argv);
 if (process.argv.length > 2) {
-  serverUrl = process.argv[2];
-  console.log("using server url: ",serverUrl);
+  agent = process.argv[2]; 
 }
 if (process.argv.length > 3) {
-  agent = process.argv[3]; 
-  console.log("using agent: ", agent);
+  serverUrl = process.argv[3];
 }
-console.log("url", serverUrl);
+console.log("using server url: ",serverUrl);
+console.log("using agent: ", agent);
 
 require('./ws-client')(serverUrl, agent);
