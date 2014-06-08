@@ -3,7 +3,6 @@ module.exports = function() {
   var i;
   for( i=0; i<100; i++){ pos[i] = ("ABCDEFGHIJ"[i/10 >>> 0]+(i%10)); }
   
-  console.log(pos);
   var mockShip = function(str) {
     return {
       asPlacement: function() {
