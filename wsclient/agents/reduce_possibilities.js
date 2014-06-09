@@ -131,12 +131,91 @@ module.exports = function() {
   };
   var handleSunkShip = function(field) {
     // fields to the directions:
-    var fN, fS, fE, fW;
+    var fN = 0,
+      fS = 0,
+      fE = 0,
+      fW = 0;
 
     // North
-    for(var i = 1; i < 5; i++) {
-      var f = field - 
+    for (var i = 1; i < 5; i++) {
+      var f = field - i * 10;
+      if (f < 0) {
+        break;
+      }
+      if (playingField[f].type == "hit") {
+        fN = i;
+      } else {
+        if (playingField[f].type == "unknown") {
+          playingField[f].type = "water";
+          console.log("Field " + f + " is marked as water next to sunk ship!");
+        }
+        break;
+      }
+
     }
+
+    // South
+    for (var i = 1; i < 5; i++) {
+      var f = field + i * 10;
+      if (f > 99) {
+        break;
+      }
+      if (playingField[f].type == "hit") {
+        fS = i;
+      } else {
+        if (playingField[f].type == "unknown") {
+          playingField[f].type = "water";
+          console.log("Field " + f + " is marked as water next to sunk ship!");
+        }
+        break;
+      }
+
+    }
+
+    // West
+    for (var i = 1; i < 5; i++) {
+      var f = field - i;
+      if (f < 0 || f % 10 == 9) {
+        break;
+      }
+      if (playingField[f].type == "hit") {
+        fW = i;
+      } else {
+        if (playingField[f].type == "unknown") {
+          playingField[f].type = "water";
+          console.log("Field " + f + " is marked as water next to sunk ship!");
+        }
+        break;
+      }
+
+    }
+
+    // East
+    for (var i = 1; i < 5; i++) {
+      var f = field + i;
+      if (f % 10 == 0) {
+        break;
+      }
+      if (playingField[f].type == "hit") {
+        fE = i;
+      } else {
+        if (playingField[f].type == "unknown") {
+          playingField[f].type = "water";
+          console.log("Field " + f + " is marked as water next to sunk ship!");
+        }
+        break;
+      }
+    }
+    if (fS > 0 || fN > 0) {
+      console.log("Sunk ship is vertical. There are " + fN + " hits to North and " + fS + " hits to South from " + field);
+      var length = 1 + fS + fN;
+      ships.splice(ships.indexOf(length), 1); // removes the first occurence of 'length' in the ships array
+    } else if (fE > 0 || fW > 0) {
+      console.log("Sunk ship is horizontal. There are " + fW + " hits to West and " + fE + " hits to East from " + field);
+      var length = 1 + fW + fE;
+      ships.splice(ships.indexOf(length), 1); // removes the first occurence of 'length' in the ships array
+    }
+    console.log("Remaining Ships:", ships);
 
 
   };
