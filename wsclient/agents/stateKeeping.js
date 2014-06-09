@@ -30,6 +30,75 @@ module.exports = function() {
 
   var lastAttackedField;
 
+  var markSurroundingWater = function(field) {
+    var leftTop = field - 11;
+    if(field % 10 != 0 && leftTop >= 0) {
+      playingField[leftTop].type= "water";
+    }
+    var rightTop = field - 9;
+    if(field % 10 != 9 && rightTop >= 0) {
+      playingField[rightTop].type = "water";
+    }
+    var leftBottom = field + 9;
+    if(field % 10 != 0 && leftBottom < 100) {
+      playingField[leftBottom].type = "water";
+    }
+    var rightBottom = field + 11;
+    if(field % 10 != 9 && leftBottom < 100) {
+      playingField[rightBottom].type = "water";
+    }
+  };
+  var handleMessages = function(messages) {
+    messages.forEach(function(msg) {
+      msg.field = lastAttackedField;
+      var field = convertField(msg.field);
+      if (msg.code == 30) {
+        playingField[field].type = "water";
+      } else if (msg.code == 31) {
+        playingField[field].type = "hit";
+        //console.log(playingField);
+        markSurroundingWater(field);
+      } else if (msg.code == 32) {
+        playingField[field].type = "hit";
+        markSurroundingWater(field);
+        console.log("Ship sunk!");
+      }
+    });
+  };
+  var findFieldToAttack = function() {
+    var col;
+    var row;
+    var field;
+    do {
+      col = Math.floor(Math.random() * 10);
+      row = Math.floor(Math.random() * 10);
+      field = col * 10 + row;
+    } while (playingField[field].type != "unknown");
+    return field;
+  };
+  var printPlayingField = function() {
+    var letter, type;
+    console.log("  0123456789");
+    console.log("");
+    for (var i = 0; i < 10; i++) {
+      var row = [];
+      row.push("ABCDEFGHIJ" [i]);
+      row.push(" ");
+      for (var j = 0; j < 10; j++) {
+        type = playingField[i * 10 + j].type;
+        if (type == "water") {
+          letter = "O";
+        } else if (type == "hit") {
+          letter = "X";
+        } else {
+          letter = " ";
+        }
+        row.push(letter);
+      }
+      console.log(row.join(""));
+    }
+  }
+
   return {
     name: function(emitName) {
       //emitName("tarent bullship");
@@ -48,29 +117,13 @@ module.exports = function() {
       ]);
     },
     attack: function(messages, callback) {
-      messages.forEach(function(msg) {
-        msg.field= lastAttackedField;
-        if (msg.field) {
-          var field = convertField(msg.field);
-          if (msg.code == 30) {
-            playingField[field].type = "water";
-          } else if (msg.code == 31) {
-            playingField[field].type = "hit";
-            console.log(playingField);
-          }
-        } else {
-          console.log(msg);
-        }
-      });
-      console.log("attack #" + attacksCounter++);
-      var col;
-      var row;
-      do {
-        col = Math.floor(Math.random() * 10);
-        row = Math.floor(Math.random() * 10);
-        lastAttackedField = col*10 + row;
-      } while(playingField[lastAttackedField].type != "unknown");
-      callback("ABCDEFGHIJ" [col] + row);
+      handleMessages(messages);
+      printPlayingField();
+      var field = findFieldToAttack();
+      lastAttackedField = field;
+      var fieldAsText = "ABCDEFGHIJ" [Math.floor(field / 10)] + (field % 10).toString();
+      console.log("attack #" + attacksCounter++, "Field:", fieldAsText, "(" + field + ")");
+      callback(fieldAsText);
     }
   };
 };
