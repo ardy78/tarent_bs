@@ -1,4 +1,10 @@
 module.exports = function() {
+
+  var W_MISS = 0;
+  var W_CALC_OTHER = 2;
+  var W_CORNER = 3;
+  var W_SUNK = 4;
+
   // playing field is an array from 00 to 99
   var playingField = [];
 
@@ -21,24 +27,29 @@ module.exports = function() {
 
   var lastAttackedField;
 
-
+  var setWater = function(field, reason) {
+    if(playingField[field].type != "water") {
+      playingField[field].type = "water";
+      playingField[field].reason = reason;
+    }
+  };
 
   var markSurroundingWater = function(field) {
     var leftTop = field - 11;
     if (field % 10 != 0 && leftTop >= 0) {
-      playingField[leftTop].type = "water";
+      setWater(leftTop,W_CORNER);
     }
     var rightTop = field - 9;
     if (field % 10 != 9 && rightTop >= 0) {
-      playingField[rightTop].type = "water";
+      setWater(rightTop,W_CORNER);
     }
     var leftBottom = field + 9;
     if (field % 10 != 0 && leftBottom < 100) {
-      playingField[leftBottom].type = "water";
+      setWater(leftBottom, W_CORNER);
     }
     var rightBottom = field + 11;
-    if (field % 10 != 9 && leftBottom < 100) {
-      playingField[rightBottom].type = "water";
+    if (field % 10 != 9 && rightBottom < 100) {
+      setWater(rightBottom, W_CORNER);
     }
   };
   var handleSunkShip = function(field) {
@@ -58,7 +69,7 @@ module.exports = function() {
         fN = i;
       } else {
         if (playingField[f].type == "unknown") {
-          playingField[f].type = "water";
+          setWater(f, W_SUNK);
           console.log("Field " + f + " is marked as water next to sunk ship!");
         }
         break;
@@ -76,7 +87,7 @@ module.exports = function() {
         fS = i;
       } else {
         if (playingField[f].type == "unknown") {
-          playingField[f].type = "water";
+          setWater(f, W_SUNK);
           console.log("Field " + f + " is marked as water next to sunk ship!");
         }
         break;
@@ -94,7 +105,7 @@ module.exports = function() {
         fW = i;
       } else {
         if (playingField[f].type == "unknown") {
-          playingField[f].type = "water";
+          setWater(f,W_SUNK);
           console.log("Field " + f + " is marked as water next to sunk ship!");
         }
         break;
@@ -112,7 +123,7 @@ module.exports = function() {
         fE = i;
       } else {
         if (playingField[f].type == "unknown") {
-          playingField[f].type = "water";
+          setWater(f,W_SUNK);
           console.log("Field " + f + " is marked as water next to sunk ship!");
         }
         break;
@@ -138,6 +149,7 @@ module.exports = function() {
       var field = msg.field;
       if (msg.code == 30) {
         playingField[field].type = "water";
+        playingField[field].reason = W_MISS;
       } else if (msg.code == 31) {
         playingField[field].type = "hit";
         //console.log(playingField);
@@ -165,7 +177,8 @@ module.exports = function() {
       for (var j = 0; j < 10; j++) {
         type = playingField[i * 10 + j].type;
         if (type == "water") {
-          letter = "O ";
+          var reason = playingField[i * 10 + j].reason.toString();
+          letter = reason + " ";
         } else if (type == "hit") {
           letter = "X ";
         } else {
