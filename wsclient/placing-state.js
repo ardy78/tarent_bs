@@ -29,6 +29,10 @@ module.exports = function(emit, actions, states) {
         emit(attackCmd);
       });
       return states.playing;
+    },
+    33: function() {
+      // enemy surrendered while placing...!?
+      process.exit(0);
     }
   });
 };

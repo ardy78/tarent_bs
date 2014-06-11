@@ -9,22 +9,32 @@ module.exports = function() {
 
   var Ship = function(topLeft, bottomRight) {
     return {
-      asPlacement: function() {
+      asFields: function() {
+
         var fields = [];
         //horizontal ships:
         if (Math.floor(topLeft / 10) == Math.floor(bottomRight / 10)) {
           for (var i = topLeft; i <= bottomRight; i++) {
-            fields.push(numberFieldAsString(i));
+            fields.push(i);
           }
         } else {
            for (var i = topLeft; i <= bottomRight; i+=10) {
-            fields.push(numberFieldAsString(i));
+            fields.push(i);
           }
         }
+        return fields;
+      },
+      asPlacement: function() {
+        var fields = [];
+        this.asFields().forEach(function(field) {
+            fields.push(numberFieldAsString(field));
+        });
         var res = fields.join(",");
         console.log("placed ship", res);
         return res;
-      }
+      },
+      topLeft: topLeft,
+      bottomRight: bottomRight
     };
   };
   var getRandomField = function() {
@@ -115,7 +125,7 @@ module.exports = function() {
           // west
           if (field % 10 > 0) {
             for (var i = field - 11; i <= (bottomField + 9); i += 10) {
-              if (field > 0 && field < 100) {
+              if (i >= 0 && i < 100) {
                 playingField[i] = WATER;
               }
             }
@@ -123,7 +133,7 @@ module.exports = function() {
           // east
           if (field % 10 < 9) {
             for (var i = field - 9; i <= (bottomField + 11); i += 10) {
-              if (0 < field && field <= 99) {
+              if (0 <= i && i <= 99) {
                 playingField[i] = WATER;
               }
             }
@@ -153,13 +163,16 @@ module.exports = function() {
 
   return function(emit) {
     var placed = false;
+    console.log("START: Random ship placement....");
     while (!placed) {
       try {
-        emit(placeShips(100));
+        var ships = placeShips(100);
+        emit(ships);
         placed = true;
       } catch (e) {
-        console.log("Placing ships failed after 100 iterations.. restarting..");
+        console.log("Placing ships failed after 100 iterations.. restarting..", e);
       }
     }
+    console.log("END: Random ship placement finished.");
   };
 }
