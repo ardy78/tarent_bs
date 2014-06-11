@@ -1,2 +1,5 @@
 wsclient/node_modules/
 .project
+out*.log
+wins*.log
+*.pl~
