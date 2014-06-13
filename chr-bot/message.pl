@@ -6,7 +6,10 @@ parse_message(Codes,Msg):-
 parse_message(Codes,_):-
   throw(invalid_message(Codes)).
 
-message(M) --> predicate(P), arguments(Args),{M =.. [P|Args]}.
+message(S:M) --> sender(S),":", predicate(P), arguments(Args),{M =.. [P|Args]}.
+message(anonymous:M) --> predicate(P), arguments(Args),{M =.. [P|Args]}.
+
+sender(S)-->name(S).
 
 arguments([Arg|Args]) --> argument(Arg), arguments(Args).
 arguments([]) --> [].

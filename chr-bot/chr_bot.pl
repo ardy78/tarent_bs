@@ -8,9 +8,12 @@
 :- use_module(config).
 
 chr_bot :-
+  init,
   redis_connect(R),
   config(channel(Chan)),
   redis_subscribe_only(R,Chan),
+  repeat,
+  writeln(startover),
   redis_loop(R).
 
 redis_loop(R) :-
@@ -20,12 +23,20 @@ redis_loop(R) :-
 
 process([bulk("message"),bulk(ChnCodes),bulk(MsgCodes)]):-
   !,
-  atom_codes(_Chn,ChnCodes),
+  atom_codes(Chn,ChnCodes),
   catch(
-      ( parse_message(MsgCodes,Msg),
-        call(Msg)
+      ( parse_message(MsgCodes,Sender:Msg),
+        ( config(name(Sender))
+        -> true
+        ; Msg == ohai
+        -> fail
+        ;  writeln(recv(Chn,Msg)),
+           assume(Msg)
+        )
       ),
       E,
-      Msg=parse_error(E)
+      writeln(E)
   ).
 process(M):-writeln(ignored(M)).
+
+ohai:-fail.
