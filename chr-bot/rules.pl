@@ -74,12 +74,12 @@ idp_head@ head(A) \ head(A) <=> true.
 idp_tail@ tail(A) \ tail(A) <=> true.
 idp_shp @ same_ship(A,B) \ same_ship(A,B) <=> true.
 idp_sunk @ sunk(A) \ sunk(A) <=> true.
-%idp_rec @ recommended(A) \ recommended(A) <=> true.
+idp_rec @ recommended(A) \ recommended(A) <=> true.
 
 corners @ occ(F),adj_diag(F,G) ==> emit(corners,free(G)).
 
-%unrecommend_occ @ occ(F)\recommended(F) <=> true.
-%unrecommend_free @ free(F)\recommended(F) <=> true.
+unrecommend_occ @ occ(F)\recommended(F) <=> true.
+unrecommend_free @ free(F)\recommended(F) <=> true.
 
 side_v@same_ship(A,B),vertical(B),adj(A,D,C) ==> memberchk(D,[w,e])|emit(side,free(C)).
 side_h@same_ship(A,B),horizontal(B),adj(A,D,C) ==> memberchk(D,[n,s])|emit(side,free(C)).

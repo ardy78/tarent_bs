@@ -1,3 +1,4 @@
+var RandomShipPlacement = require("../tools/randomShipPlacement");
 module.exports = function() {
   var freeFields = [];
   var occFields = [];
@@ -181,6 +182,7 @@ module.exports = function() {
         mockShip("f4,g4")
       ]);
     },
+    //ships: RandomShipPlacement(),
     attack: function(messages, callback) {
       console.log("attack #" + attacksCounter++);
       publishMessages(messages);
