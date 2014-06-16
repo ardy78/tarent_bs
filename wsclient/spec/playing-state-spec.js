@@ -30,7 +30,7 @@ describe("The 'Playing State' state", function() {
       done();
     });
 
-    state.defaultAction({code:29});
+    state[29]({code:29});
 
   });
 
@@ -38,7 +38,7 @@ describe("The 'Playing State' state", function() {
     var msg = {code:34, field: "C5"};
     actions.attack = createSpy("attackSpy");
     state.defaultAction(msg);
-    state.defaultAction({code:29});
+    state[29]({code:29});
     expect(actions.attack).toHaveBeenCalledWith([msg, {code:29}], jasmine.any(Function));
   });
 });
