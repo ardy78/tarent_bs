@@ -1,5 +1,7 @@
 var RandomShipPlacement = require("../tools/randomShipPlacement");
+var Projection = require("../projection");
 module.exports = function() {
+  var overlaps = {};
   var freeFields = [];
   var occFields = [];
   var triedFields = [];
@@ -87,7 +89,7 @@ module.exports = function() {
         console.log("processing", pred, argString, sender);
         action.apply(action, args);
       } else {
-         console.log("ignoring", pred, argString, sender);
+       // console.log("ignoring", pred, argString, sender);
       }
     });
   });
@@ -120,7 +122,7 @@ module.exports = function() {
       if (!f) {
         return;
       }
-      //      console.log("message", msg.code, f.name, msg.txt);
+      console.log("emit", msg.code, f.name, msg.txt);
       switch (msg.code) {
         case 30:
           actions.free(parseArg(f.toString()));
@@ -131,7 +133,11 @@ module.exports = function() {
           publish("occ", f);
           break;
         case 32:
+          actions.occ(parseArg(f.toString()));
           publish("sunk", f);
+          break;
+        case 40:
+          publish("clusterbombed",f);
           break;
       }
     });
@@ -165,12 +171,31 @@ module.exports = function() {
 
   }
 
+  var decorateShips = function(delegatee) {
+    var commit;
+    var decorateEmit = function(emit) {
+      return function(fleet) {
+        overlaps = Projection.overlaps(fleet);
+        commit = function() {
+          emit(fleet);
+        };
+      };
+    };
+    return function(emit) {
+      do{
+        delegatee(decorateEmit(emit));
+      } while(overlaps[5]<3);
+      commit();
+      console.log("overlaps", overlaps);
+    };
+  };
+
   var attacksCounter = 0;
   return {
     name: function() {
       return "tarent bullship adapt0r";
     },
-    ships: function(emit) {
+    /*    ships: function(emit) {
       emit([
         mockShip("d0,e0,f0,g0,h0"),
         mockShip("j0,j1,j2,j3,j4"),
@@ -181,8 +206,8 @@ module.exports = function() {
         mockShip("a6,a7"),
         mockShip("f4,g4")
       ]);
-    },
-    //ships: RandomShipPlacement(),
+    },*/
+    ships: decorateShips(RandomShipPlacement()),
     attack: function(messages, callback) {
       console.log("attack #" + attacksCounter++);
       publishMessages(messages);
@@ -195,13 +220,20 @@ module.exports = function() {
 
         if (f) {
           console.log("attacking recommended field", f.name);
+          callback(f.name);
         } else {
           f = randomAttackField();
-          console.log("attacking random field", f.name);
+          if(overlaps[5]>0){
+            console.log("clusterombing random field",f.name);
+            callback("+"+f.name);
+            overlaps[5]--;
+          }else{
+            console.log("attacking random field", f.name);
+            callback(f.name);
+          }
         }
         f.tried = true;
         triedFields.push(f);
-        callback(f.name);
       }, 30);
     }
   };

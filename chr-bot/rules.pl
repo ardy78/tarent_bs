@@ -34,7 +34,7 @@ init:-
   forall(find_chr_constraint(C),memorize(C)).
 
 assume(C):-
-  constraint(C), !, call(C),writeln(done).
+  constraint(C), !,memorize(C), call(C),writeln(done).
 assume(C):-writeln(ignore(C)).
 
 constraint(free(_)).
@@ -43,6 +43,7 @@ constraint(sunk(_)).
 constraint(same_ship(_,_)).
 constraint(orientation(_,_)).
 constraint(min_length(_,_)).
+constraint(clusterbombed(_)).
 
 :- chr_constraint adj_diag/2.
 :- chr_constraint adj_ln/2.
@@ -58,6 +59,7 @@ constraint(min_length(_,_)).
 :- chr_constraint head/1.
 :- chr_constraint tail/1.
 :- chr_constraint sunk/1.
+:- chr_constraint clusterbombed/1.
 
 field(N) ==> N mod 10 > 0 | succ(M,N),adj(M,w,N),adj(N,e,M).
 field(N) ==> N > 9 | M is N-10,adj(M,n,N),adj(N,s,M).
@@ -99,6 +101,7 @@ sink @ sunk(A) ==> emit(sink,occ(A)).
 sink_head @ sunk(A),same_ship(A,B),head(B),adj(B,_,C) ==> C<B| emit(sink_head,free(C)).
 sink_tail @ sunk(A),same_ship(A,B),tail(B),adj(B,_,C) ==> C>B|emit(sink_tail,free(C)).
 
+cbresult @ clusterbombed(F) <=> process_cb_result(F).
 
 recommend_neighbours(N):-
   forall(
@@ -110,6 +113,18 @@ recommend_neighbours(N):-
       ),
       emit(rec_nghb,recommended(M))
   ).
+
+process_cb_result(N):-
+  forall(
+      ( ( M=N
+        ; known(adj(N,D,M)),
+          memberchk(D,[n,w,s,e])
+        ),
+        \+ known(occ(M))
+      ),
+      emit(cb_result,free(M))
+  ).
+
 
 emit_orientation(n,N):-
   emit(cnn,vertical(N)).
