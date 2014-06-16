@@ -20,10 +20,10 @@ var Arena = function(options) {
         return num;
       },
       toString: function() {
-        if(typeof options.renderField === "function"){
+        if (typeof options.renderField === "function") {
           return options.renderField(this);
         }
-        return "("+this.row()+","+this.col()+")";
+        return "(" + this.row() + "," + this.col() + ")";
       },
       row: function() {
         return Math.floor(num / columns);
@@ -42,7 +42,7 @@ var Arena = function(options) {
         }
       },
       ne: function() {
-        if (this.row() > 0 && this.col() < columns-1) {
+        if (this.row() > 0 && this.col() < columns - 1) {
           return this.n().e();
         }
       },
@@ -52,17 +52,17 @@ var Arena = function(options) {
         }
       },
       se: function() {
-        if (this.row() < rows-1 && this.col() <columns -1) {
+        if (this.row() < rows - 1 && this.col() < columns - 1) {
           return this.s().e();
         }
       },
       s: function() {
-        if (this.row() < rows-1) {
+        if (this.row() < rows - 1) {
           return Field(num + columns);
         }
       },
       sw: function() {
-        if (this.row() < rows-1 && this.col() > 0) {
+        if (this.row() < rows - 1 && this.col() > 0) {
           return this.s().w();
         }
       },
@@ -90,7 +90,53 @@ var Arena = function(options) {
     columns: function() {
       return columns;
     },
-    field: Field
+    field: Field,
+    columnLabel:function(c){
+      if(typeof options.columnLabel === "function"){
+        return options.columnLabel(c);
+      }
+      return c;
+    },
+    rowLabel:function(r){
+      if(typeof options.rowLabel === "function"){
+        return options.rowLabel(r);
+      }
+      return r;
+    }
   };
 };
 module.exports = Arena;
+module.exports._10x10 = function() {
+  return Arena({
+    rows: 10,
+    columns: 10,
+    parseOrdinal: function(s) {
+      return 10 * (s.toLowerCase().charCodeAt(0) - "a".charCodeAt(0)) + parseInt(s[1]);
+    },
+    renderField: function(field) {
+      return "abcdefghij" [field.row()] + field.col();
+    },
+    rowLabel: function(n){
+      return "ABCDEFGHIJ"[n];
+    }
+  });
+};
+
+module.exports._16x16 = function() {
+  return Arena({
+    rows: 16,
+    columns: 16,
+    parseOrdinal: function(s) {
+      return parseInt(s, 16);
+    },
+    renderField: function(field) {
+      return field.num().toString(16);
+    },
+    rowLabel: function(n){
+      return n.toString(16);
+    },
+    columnLabel: function(n){
+      return n.toString(16);
+    }
+  });
+}

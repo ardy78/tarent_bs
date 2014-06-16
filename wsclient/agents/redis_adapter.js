@@ -1,5 +1,6 @@
 var RandomShipPlacement = require("../tools/randomShipPlacement");
 var Projection = require("../projection");
+var Arena = require("../arena");
 module.exports = function() {
   var overlaps = {};
   var freeFields = [];
@@ -11,22 +12,8 @@ module.exports = function() {
   var transmitter = redis.createClient();
   var channel = "chr_bot";
   var name = "redis_adapter_" + process.pid;
-  var fields = [];
-  var Field = function(num) {
-    var f = fields[num];
-    if (typeof f == "undefined") {
-      f = {
-        name: "abcdefghij" [Math.floor(num / 10)] + (num % 10),
-        num: num,
-        toString: function() {
-          return this.name;
-        }
-      };
-      fields[num] = f;
-    }
-    return f;
-  }
-
+  var arena = Arena._10x10();
+  var Field = arena.field; 
   var ships = {};
   var ship = function(name) {
     var s = ships[name];
@@ -44,10 +31,10 @@ module.exports = function() {
     }
     if (/^[a-j]\d$/.test(part)) {
       //alphanumeric field reference
-      return Field(10 * (part.charCodeAt(0) - "a".charCodeAt(0)) + parseInt(part[1]));
+      return Field(part);
     }
-    //anything else: hopefully a Variable reference
-    return ship(part);
+    //only fields for now.
+    throw new Error("Don't know what to do with arg: "+part);
   };
   var parse = function(message, cb) {
     var parts = message.split(/\s+/);
@@ -118,22 +105,22 @@ module.exports = function() {
   var publishMessages = function(messages) {
     messages.forEach(function(msg) {
       //XXX: better ideas?
-      var f = msg.field ? msg.field.toLowerCase() : triedFields[triedFields.length - 1];
+      var f = msg.field ? Field(msg.field) : triedFields[triedFields.length - 1];
       if (!f) {
         return;
       }
       console.log("emit", msg.code, f.name, msg.txt);
       switch (msg.code) {
         case 30:
-          actions.free(parseArg(f.toString()));
-          publish("free", f);
+          actions.free(f);
+          publish("free",f);
           break;
         case 31:
-          actions.occ(parseArg(f.toString()));
+          actions.occ(f);
           publish("occ", f);
           break;
         case 32:
-          actions.occ(parseArg(f.toString()));
+          actions.occ(f);
           publish("sunk", f);
           break;
         case 40:

@@ -1,14 +1,5 @@
 describe("The 16x16 Arena:", function() {
-  var arena = require("../arena")({
-    rows: 16,
-    columns: 16,
-    parseOrdinal: function(s) {
-      return parseInt(s, 16);
-    },
-    renderField: function(field) {
-      return field.num().toString(16);
-    }
-  });
+  var arena = require("../arena")._16x16();
   it("knows its dimensions", function() {
     expect(arena.rows()).toBe(16);
     expect(arena.columns()).toBe(16);

@@ -1,14 +1,5 @@
 describe("The 10x10 Arena:", function() {
-  var arena = require("../arena")({
-    rows: 10,
-    columns: 10,
-    parseOrdinal: function(s) {
-      return 10 * (s.toLowerCase().charCodeAt(0) - "a".charCodeAt(0)) + parseInt(s[1]);
-    },
-    renderField: function(field) {
-      return "abcdefghij"[field.row()]+field.col();
-    }
-  });
+  var arena = require("../arena")._10x10();
   it("knows its dimensions", function() {
     expect(arena.rows()).toBe(10);
     expect(arena.columns()).toBe(10);
