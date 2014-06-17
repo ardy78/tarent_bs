@@ -1,9 +1,28 @@
 describe("The 10x10 Arena:", function() {
-  var arena = require("../arena")._10x10();
+
+  var notSoRandom = function(){
+    var seq = Array.prototype.slice.call(arguments);
+    return function(){
+      var r;
+      seq.push(r=seq.shift());
+      return r;
+    };
+  };
+
+  var arena = require("../arena")._10x10({random:notSoRandom(0,0.5,0.999999)});
+
   it("knows its dimensions", function() {
     expect(arena.rows()).toBe(10);
     expect(arena.columns()).toBe(10);
   });
+  
+  it("can choose fields at 'random'",function(){
+    var Field = arena.field;
+    expect(arena.randomField()).toBe(Field(0));
+    expect(arena.randomField()).toBe(Field(50));
+    expect(arena.randomField()).toBe(Field(99));
+  });
+  
   describe("A Field", function() {
     var Field = arena.field;
     it("is a value-object: iff two instances refer to the same field, they are identical", function() {

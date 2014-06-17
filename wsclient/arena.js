@@ -1,6 +1,10 @@
 var Arena = function(options) {
   var rows = options.rows;
   var columns = options.columns;
+  var random = options.random;
+  if (typeof random !== "function") {
+    random = Math.random;
+  }
   var instances = []
   var parse = function(spec, col) {
     if (typeof spec == "number") {
@@ -91,23 +95,35 @@ var Arena = function(options) {
       return columns;
     },
     field: Field,
-    columnLabel:function(c){
-      if(typeof options.columnLabel === "function"){
+    columnLabel: function(c) {
+      if (typeof options.columnLabel === "function") {
         return options.columnLabel(c);
       }
       return c;
     },
-    rowLabel:function(r){
-      if(typeof options.rowLabel === "function"){
+    rowLabel: function(r) {
+      if (typeof options.rowLabel === "function") {
         return options.rowLabel(r);
       }
       return r;
+    },
+    randomField: function() {
+      return Field(Math.floor(random() * rows * columns));
     }
   };
 };
+merge = function(object, properties) {
+  var key, val;
+  for (key in properties) {
+    val = properties[key];
+    object[key] = val;
+  }
+  return object;
+};
+
 module.exports = Arena;
-module.exports._10x10 = function() {
-  return Arena({
+module.exports._10x10 = function(options) {
+  return Arena(merge({
     rows: 10,
     columns: 10,
     parseOrdinal: function(s) {
@@ -116,14 +132,14 @@ module.exports._10x10 = function() {
     renderField: function(field) {
       return "abcdefghij" [field.row()] + field.col();
     },
-    rowLabel: function(n){
-      return "ABCDEFGHIJ"[n];
+    rowLabel: function(n) {
+      return "ABCDEFGHIJ" [n];
     }
-  });
+  }, options));
 };
 
-module.exports._16x16 = function() {
-  return Arena({
+module.exports._16x16 = function(options) {
+  return Arena(merge({
     rows: 16,
     columns: 16,
     parseOrdinal: function(s) {
@@ -132,11 +148,11 @@ module.exports._16x16 = function() {
     renderField: function(field) {
       return field.num().toString(16);
     },
-    rowLabel: function(n){
+    rowLabel: function(n) {
       return n.toString(16);
     },
-    columnLabel: function(n){
+    columnLabel: function(n) {
       return n.toString(16);
     }
-  });
+  }), options);
 }
