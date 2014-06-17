@@ -1,4 +1,4 @@
-module.exports = function(arena, channel,actions) {
+module.exports = function(arena, channel,actions,reflect) {
   var redis = require("redis");
   var receiver = redis.createClient();
   var transmitter = redis.createClient();
@@ -70,7 +70,7 @@ module.exports = function(arena, channel,actions) {
   });
   receiver.on("message", function(channel, message) {
     parseFact(message, function(pred, args, sender) {
-      if (sender !== name) {
+      if (reflect||sender !== name) {
         processFact(pred, args, sender);
       }
     });

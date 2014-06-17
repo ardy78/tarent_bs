@@ -1,18 +1,39 @@
 var Arena = require("./arena");
 var Visualizer = require("./visualizer");
 var RedisAdapter = require("./redis-adapter.js");
+
 var arena = Arena._10x10();
 
-var states= {};
-var state = function(f){
-  if(typeof states[f] === "undefined"){
-    states[f]={};
+var states = {};
+var state = function(f) {
+  if (typeof states[f] === "undefined") {
+    states[f] = {};
   }
   return states[f];
 }
+var readline = require('readline');
+var setupCli = function(publish) {
+
+
+  var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  rl.setPrompt('OHAI> ');
+  rl.prompt();
+
+  rl.on('line', function(line) {
+    publish(line);
+    rl.prompt();
+  }).on('close', function() {
+    console.log('Have a great day!');
+    process.exit(0);
+  });
+};
 
 var actions = {
-  ohai:function(){
+  initialize:setupCli,
+  ohai: function() {
     reset();
     show();
   },
@@ -30,15 +51,15 @@ var actions = {
   }
 };
 
-var redisAdapter = RedisAdapter(arena, "chr_bot", actions);
+var redisAdapter = RedisAdapter(arena, "chr_bot", actions,true);
 
-var reset = function(){
-  states={};
+var reset = function() {
+  states = {};
 };
 
 var show = function() {
   var cell = function(f) {
-//    var tried = triedFields.indexOf(f) >= 0;
+    //    var tried = triedFields.indexOf(f) >= 0;
     var tried = false;
     if (state(f).state == "free") {
       return tried ? "X" : "x";
@@ -55,3 +76,4 @@ var show = function() {
 }
 
 redisAdapter.start();
+
