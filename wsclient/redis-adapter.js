@@ -80,6 +80,7 @@ module.exports = function(arena, channel,actions,reflect) {
     start:function(){
       receiver.subscribe(channel);
     },
+    publish:publish,
     processMessages: processMessages
   }
 };

@@ -111,6 +111,7 @@ module.exports = function(){
         }
         f.tried = true;
         triedFields.push(f);
+        redisAdapter.publish("tried",f);
       }, 30);
     }
   };

@@ -46,7 +46,11 @@ var actions = {
     show();
   },
   recommended: function(f) {
-    state(f).recommended = 'true';
+    state(f).recommended = true;
+    show();
+  },
+  tried: function(f){
+    state(f).tried = true;
     show();
   }
 };
@@ -59,8 +63,7 @@ var reset = function() {
 
 var show = function() {
   var cell = function(f) {
-    //    var tried = triedFields.indexOf(f) >= 0;
-    var tried = false;
+    var tried = state(f).tried;
     if (state(f).state == "free") {
       return tried ? "X" : "x";
     }
