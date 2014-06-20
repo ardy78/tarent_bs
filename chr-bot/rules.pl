@@ -1,4 +1,4 @@
-:- module(rules,[init/0,assume/1]).
+:- module(rules,[init/0,assume/1,reset/0]).
 
 :- use_module(library(chr)).
 
@@ -89,7 +89,7 @@ side_h@same_ship(A,B),horizontal(B),adj(A,D,C) ==> memberchk(D,[n,s])|emit(side,
 sighting @ occ(N) ==> emit(sighting,head(N)),emit(sighting,tail(N)),recommend_neighbours(N).
 connect_ships @ occ(N),occ(M),adj(N,D,M) ==> memberchk(D,[w,e,n,s])|emit(cnn,same_ship(N,M)), emit_orientation(D,N).
 symmetrisch @ same_ship(A,B) ==> A\=B | emit(sym,same_ship(B,A)).
-% reflexiv @ same_ship(A,A) <=> emit(rfl,true).
+reflexiv @ occ(A) ==> emit(rfl,same_ship(A,A)).
 transitiv @ same_ship(A,B),same_ship(B,C) ==> A\=C| emit(trn,same_ship(A,C)).
 simplify_hor @ same_ship(A,B), horizontal(A) \ horizontal(B) <=> true.
 simplify_ver @ same_ship(A,B), vertical(A) \ vertical(B) <=> true.
@@ -98,7 +98,7 @@ prop_head @ same_ship(A,B) \ head(B) <=> A<B| emit(prop_head,head(A)).
 prop_tail @ same_ship(A,B) \ tail(A) <=> A<B| emit(prop_tail,tail(B)).
 
 sink @ sunk(A) ==> emit(sink,occ(A)).
-sink_head @ sunk(A),same_ship(A,B),head(B),adj(B,_,C) ==> C<B| emit(sink_head,free(C)).
+sink_head @ sunk(A),same_ship(A,B),head(B),adj(B,_,C) ==> C<B|emit(sink_head,free(C)).
 sink_tail @ sunk(A),same_ship(A,B),tail(B),adj(B,_,C) ==> C>B|emit(sink_tail,free(C)).
 
 cbresult @ clusterbombed(F) <=> process_cb_result(F).
@@ -154,3 +154,5 @@ memorize(Msg):-
   -> true
   ; assert(known(Msg))
   ).
+reset:-
+  retractall(known(_)).
