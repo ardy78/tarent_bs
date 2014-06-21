@@ -20,7 +20,7 @@ module.exports=function(arena){
   };
 
   var parse = function(input,cb){
-    var lines = input.split('\n');
+    var lines = input.split('\n').filter(function(line){return line.trim().length;});
     var colLabels = lines.shift().trim().split(/\s+/);
     lines.forEach(function(line,lineNo){
       var cells = line2cells(line);

@@ -5,7 +5,7 @@ var Arena = function(options) {
   if (typeof random !== "function") {
     random = Math.random;
   }
-  var instances = []
+  var instances = [];
   var parse = function(spec, col) {
     if (typeof spec == "number") {
       if (typeof col == "number") {
@@ -16,6 +16,9 @@ var Arena = function(options) {
     }
     if (typeof spec === "string" && typeof options.parseOrdinal === "function") {
       return options.parseOrdinal(spec);
+    }
+    if(typeof spec === "object" && typeof spec.num === "function"){
+      return spec.num();
     }
   };
   var Instance = function(num) {
@@ -109,6 +112,11 @@ var Arena = function(options) {
     },
     randomField: function() {
       return Field(Math.floor(random() * rows * columns));
+    },
+    scan: function(cb){
+      for(var i=0;i<rows*columns;i++){
+        cb(Field(i));
+      }
     }
   };
 };

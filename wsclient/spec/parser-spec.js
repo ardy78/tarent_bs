@@ -36,6 +36,7 @@ describe("The Parser", function() {
 
   it("can cope with leading and trailing whitepsace",function(){
     var input = [
+      "   ",
       "      0 1 2 3 4 5 6 7 8 9       ",
       "A                 k  ",
       " B                         ",

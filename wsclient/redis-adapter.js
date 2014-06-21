@@ -50,7 +50,7 @@ module.exports = function(arena, channel,actions,reflect) {
     msgs.forEach(function(msg) {
       processMessage(msg, lastAttackedField);
     });
-  }
+  };
 
   var processFact = function(pred, args, sender) {
     var action = actions[pred];
@@ -82,5 +82,5 @@ module.exports = function(arena, channel,actions,reflect) {
     },
     publish:publish,
     processMessages: processMessages
-  }
+  };
 };

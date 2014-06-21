@@ -22,7 +22,17 @@ describe("The 10x10 Arena:", function() {
     expect(arena.randomField()).toBe(Field(50));
     expect(arena.randomField()).toBe(Field(99));
   });
-  
+
+  it("can iterate ('scan') over all fields",function(){
+    var cb = createSpy("cb");
+    var N = arena.rows()*arena.columns();
+    arena.scan(cb);
+    expect(cb.calls.length).toBe(N);
+    for(var i=0;i<N;i++){
+      expect(cb.calls[i].args[0]).toEqual(arena.field(i));
+    }
+  });
+
   describe("A Field", function() {
     var Field = arena.field;
     it("is a value-object: iff two instances refer to the same field, they are identical", function() {
