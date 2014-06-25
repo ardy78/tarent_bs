@@ -83,6 +83,12 @@ module.exports = function() {
         possibilities[f] = 0;
       }
     }
+    // mark fields with no possible ship as water
+    for (var f = 0; f < 100; f++) {
+      if (possibilities[f] == 0 && stateKeeper.isUnknown(f)) {
+        stateKeeper.setWater(f, '=');
+      }
+    }
   };
 
 

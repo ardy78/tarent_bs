@@ -1,54 +1,42 @@
+var Arena = require('../arena');
+var State = require('../state');
+var StateHelper = require('./stateHelper');
+var Visualizer = require('../visualizer');
+
 module.exports = function() {
   var ANY = 0;
   var WATER = 1;
-  var SHIP = 2;
+  var SHIP = "occ";
 
-  var numberFieldAsString = function(field) {
-    return "ABCDEFGHIJ" [Math.floor(field / 10)] + field % 10;
-  };
+  var arena = Arena._16x16();
+  var state = State();
+  var stateHelper = StateHelper(state);
+  var visualizer = Visualizer(arena);
 
-  var Ship = function(topLeft, bottomRight) {
+  var Ship = function(fields) {
     return {
       asFields: function() {
-
-        var fields = [];
-        //horizontal ships:
-        if (Math.floor(topLeft / 10) == Math.floor(bottomRight / 10)) {
-          for (var i = topLeft; i <= bottomRight; i++) {
-            fields.push(i);
-          }
-        } else {
-           for (var i = topLeft; i <= bottomRight; i+=10) {
-            fields.push(i);
-          }
-        }
         return fields;
       },
       asPlacement: function() {
-        var fields = [];
-        this.asFields().forEach(function(field) {
-            fields.push(numberFieldAsString(field));
+        var res = [];
+        fields.forEach(function(f) {
+          res.push(f.toString());
         });
-        var res = fields.join(",");
+
         console.log("placed ship", res);
-        return res;
+        return res.join(",");
       },
-      topLeft: topLeft,
-      bottomRight: bottomRight
     };
   };
   var getRandomField = function() {
-    return Math.floor(Math.random() * 100);
+    return arena.randomField();
   };
   var getRandomBoolean = function() {
     return Math.random() >= 0.5;
   };
+
   var placeShips = function(maxTries) {
-    // init playing Field
-    var playingField = [];
-    for (var i = 0; i < 100; i++) {
-      playingField[i] = ANY;
-    }
 
     var tries = 0;
 
@@ -63,96 +51,32 @@ module.exports = function() {
       var length = ship;
       console.log("Placing ship:", length);
       var nextTry = function() {
-        var field = getRandomField();
+        var startField = getRandomField();
+        var dir;
         if (getRandomBoolean()) {
-          // horizontal ship
-          var rightEndPos = field % 10 + length - 1;
-          if (rightEndPos > 9) {
-            return false;
-          }
-
-          var rightField = field + length - 1;
-          for (var i = field; i <= rightField; i++) {
-            if (playingField[i] != ANY) {
-              return false;
-            }
-          }
-          // successful -> place
-          for (var i = field; i <= rightField; i++) {
-            playingField[i] = SHIP;
-          }
-          placedShips.push(Ship(field, rightField));
-          // surround with water:
-          // north
-          if (field >= 10) {
-            for (var i = field - 11; i <= (rightField - 9); i++) {
-              playingField[i] = WATER;
-            }
-          }
-          // south
-          if (field < 90) {
-            for (var i = field + 9; i <= (rightField + 11); i++) {
-              playingField[i] = WATER;
-            }
-          }
-          // west
-          if (field % 10 != 0) {
-            playingField[field - 1] = WATER;
-          }
-          if (field % 10 != 9) {
-            playingField[rightField + 1] = WATER;
-          }
-          return true;
+          dir = "e";
         } else {
-          // vertical ship
-
-          var bottomField = field + (length - 1) * 10;
-          if (bottomField > 99) {
-            return false;
-          }
-
-          for (var i = field; i <= bottomField; i += 10) {
-            if (playingField[i] != ANY) {
-              return false;
-            }
-          }
-          // successful -> place
-          for (var i = field; i <= bottomField; i += 10) {
-            playingField[i] = SHIP;
-          }
-          placedShips.push(Ship(field, bottomField));
-          // surround with water:
-          // west
-          if (field % 10 > 0) {
-            for (var i = field - 11; i <= (bottomField + 9); i += 10) {
-              if (i >= 0 && i < 100) {
-                playingField[i] = WATER;
-              }
-            }
-          }
-          // east
-          if (field % 10 < 9) {
-            for (var i = field - 9; i <= (bottomField + 11); i += 10) {
-              if (0 <= i && i <= 99) {
-                playingField[i] = WATER;
-              }
-            }
-          }
-          // north
-          if (field >= 10) {
-            playingField[field - 10] = WATER;
-          }
-          // south
-          if (field < 90) {
-            playingField[bottomField + 10] = WATER;
-          }
-          return true;
+          dir = "s";
         }
-      }
+
+        var fields = stateHelper.checkIfPlacementPossible(startField, dir, length);
+
+        if (!fields) {
+          return false;
+        }
+
+        stateHelper.placeShipsAndMarkWater(fields);
+
+        placedShips.push(Ship(fields));
+
+        console.log(visualizer.render(state.visualize));
+
+        return true;
+      };
       while (!nextTry()) {
         tries++;
         if (tries > maxTries) {
-          throw "to many tries";
+          throw new Error("to many tries");
         }
       };
     });
@@ -165,13 +89,13 @@ module.exports = function() {
     var placed = false;
     console.log("START: Random ship placement....");
     while (!placed) {
-      try {
+  //    try {
         var ships = placeShips(100);
         emit(ships);
         placed = true;
-      } catch (e) {
-        console.log("Placing ships failed after 100 iterations.. restarting..", e);
-      }
+  //    } catch (e) {
+  //      console.log("Placing ships failed after 100 iterations.. restarting..", e);
+  //    }
     }
     console.log("END: Random ship placement finished.");
   };
