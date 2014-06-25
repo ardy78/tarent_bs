@@ -20,7 +20,7 @@ describe("The State-Helper", function() {
       expect(fields.length).toEqual(5);
     });
     it("and returns false if ship placement is not possible", function() {
-      state(arena.field(1)).type = "occ";
+      state(arena.field(1)).type = "ship";
 
       var startField = arena.field(0);
       var fields = stateHelper.checkIfPlacementPossible(startField, "e", 5);
@@ -34,9 +34,9 @@ describe("The State-Helper", function() {
 
       [0x00,0x01,0x02,0x03,0x10,0x13,0x20,0x21,0x22,0x23].forEach(function(f) {
         var field = arena.field(f);
-        expect(state(field).type).toEqual("free");
+        expect(state(field).type).toEqual("water");
         
-        if(state(field).type != "free") {
+        if(state(field).type != "water") {
           console.log("field", field.toString(), "is not marked as free");
         }
 
