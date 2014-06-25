@@ -21,9 +21,9 @@ module.exports = function() {
 
       // first we mark the hit field as ship
       newState(anyField).type = "ship";
-  
 
-     // now, count the hits to each direction, to know which ship is sunk. 
+
+      // now, count the hits to each direction, to know which ship is sunk. 
       var countToDir = {};
 
       var dirs = ["n", "s", "e", "w"];
@@ -37,9 +37,9 @@ module.exports = function() {
             // moved out of playing field
             break;
           }
-
-          if (isUnknown(state, currentField)) {
-            setWater(state, currentField, "SHIP_SUNK");
+          if (newState(currentField).type !== "ship") {
+            //if (isUnknown(newState, currentField)) {
+            setWater(newState, currentField, "SHIP_SUNK");
             console.log("[HandleSunkShip] Field " + currentField.toString() + " is marked as water next to sunk ship!");
             break;
           }
