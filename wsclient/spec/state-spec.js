@@ -40,16 +40,16 @@ describe("The State-function", function() {
   });
 
   it("visualizes state=free/occ as x/o by default", function() {
-    state(1).state = "free";
-    state(2).state = "occ";
+    state(1).type = "water";
+    state(2).type = "ship";
     expect(state.visualize(1)).toBe("x");
     expect(state.visualize(2)).toBe("o");
   });
 
   it("visualizes attacked fields as upper case letter", function() {
-    state(1).state = "free";
+    state(1).type = "water";
     state(1).tried = true;
-    state(2).state = "occ";
+    state(2).type = "ship";
     state(2).tried = true;
     expect(state.visualize(1)).toBe("X");
     expect(state.visualize(2)).toBe("O");
@@ -73,11 +73,11 @@ describe("The State-function", function() {
 
   it("interpretes 'X' as explicit (i.e. tried) state=free", function(){
     state.interprete(1,'X');
-    expect(state(1)).toEqual({state:"free",tried:true});
+    expect(state(1)).toEqual({type:"water",tried:true});
   });
   it("interpretes 'o' as implicit (i.e. not tried) state=occ", function(){
     state.interprete(1,'o');
-    expect(state(1)).toEqual({state:"occ",tried:false});
+    expect(state(1)).toEqual({type:"ship",tried:false});
   });
   it("interpretes '?' as recommendation", function(){
     state.interprete(1,'?');

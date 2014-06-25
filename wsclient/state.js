@@ -16,10 +16,10 @@ module.exports = State = function(options) {
   if (typeof encode !== "function") {
     encode = function(state, key) {
       var tried = state.tried;
-      if (state.state == "free") {
+      if (state.type == "water") {
         return tried ? "X" : "x";
       }
-      if (state.state == "occ") {
+      if (state.type == "ship") {
         return tried ? "O" : "o";
       }
       if (state.recommended) {
@@ -33,19 +33,19 @@ module.exports = State = function(options) {
     decode = function(state, character, key) {
       switch (character) {
         case "x":
-          state.state = "free";
+          state.type = "water";
           state.tried = false;
           break;
         case "o":
-          state.state = "occ";
+          state.type = "ship";
           state.tried = false;
           break;
         case "X":
-          state.state = "free";
+          state.type = "water";
           state.tried = true;
           break;
         case "O":
-          state.state = "occ";
+          state.type = "ship";
           state.tried = true;
           break;
         case "?":

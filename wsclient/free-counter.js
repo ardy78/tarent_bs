@@ -6,7 +6,7 @@ module.exports = function(arena) {
       var cache;
       return function() {
         if (typeof cache === "undefined") {
-          if (state(self).state === "free") {
+          if (state(self).type === "water") {
             return 0;
           }
           var pre = self[preDir]();
@@ -49,7 +49,7 @@ module.exports = function(arena) {
     var Bounds = function(self) {
       var cache;
       return function() {
-        if (state(self) !== "occ") {
+        if (state(self) !== "ship") {
           return undefined;
         }
         if (typeof cache === "undefined") {
@@ -57,16 +57,16 @@ module.exports = function(arena) {
             head: self,
             tail: self
           };
-          if (state(self.n()).state === "occ") {
+          if (state(self.n()).type === "ship") {
             cache.head = state(self.n()).head();
           }
-          if (state(self.w()).state === "occ") {
+          if (state(self.w()).type === "ship") {
             cache.head = state(self.w()).head();
           }
-          if (state(self.s()).state === "occ") {
+          if (state(self.s()).type === "ship") {
             cache.tail = state(self.s()).head();
           }
-          if (state(self.e()).state === "occ") {
+          if (state(self.e()).type === "ship") {
             cache.tail = state(self.e()).head();
           }
         }

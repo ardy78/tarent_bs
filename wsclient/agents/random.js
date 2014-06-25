@@ -12,13 +12,9 @@ module.exports = function() {
   var attacksCounter = 0;
 
   var findFieldToAttack = function() {
-    var col;
-    var row;
     var field;
     do {
-      col = Math.floor(Math.random() * 10);
-      row = Math.floor(Math.random() * 10);
-      field = col * 10 + row;
+      field = stateKeeper.arena.randomField();
     } while (!stateKeeper.isUnknown(field));
     return field;
   };
@@ -34,9 +30,8 @@ module.exports = function() {
       stateKeeper.printField();
       var field = findFieldToAttack();
       stateKeeper.attacking(field);
-      var fieldAsText = "ABCDEFGHIJ" [Math.floor(field / 10)] + (field % 10).toString();
-      console.log("attack #" + attacksCounter++, "Field:", fieldAsText, "(" + field + ")");
-      callback(fieldAsText);
+      console.log("attack #" + attacksCounter++, "Field:", field.toString());
+      callback(field.toString());
     }
   };
 };
