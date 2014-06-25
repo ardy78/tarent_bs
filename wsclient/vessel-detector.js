@@ -8,7 +8,7 @@ module.exports = function(arena) {
     arena.scan(function(field) {
       var s = state(field);
 
-      if (s.state === "occ") {
+      if (s.type === "ship") {
         var n = field.n();
         var w = field.w();
         var sn = n ? state(n) : undefined;
@@ -19,12 +19,12 @@ module.exports = function(arena) {
           fields: [field]
         };
 
-        if (sn && sn.state === "occ") {
+        if (sn && sn.type === "ship") {
           s.vessel = sn.vessel;
           s.vessel.orientation = "vertical";
           s.vessel.fields.push(field);
           s.vessel.tail = field;
-        } else if (sw && sw.state === "occ") {
+        } else if (sw && sw.type === "ship") {
           s.vessel = sw.vessel;
           s.vessel.orientation = "horizontal";
           s.vessel.fields.push(field);
@@ -47,7 +47,7 @@ module.exports = function(arena) {
             return;
           }
           if (val == "closed") {
-            state(f).state = "free";
+            state(f).type = "water";
             vessel.closed.push(f);
           }
           if (val == "open") {
