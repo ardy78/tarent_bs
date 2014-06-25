@@ -33,6 +33,17 @@ describe("The 10x10 Arena:", function() {
     }
   });
 
+  it("can return a list of fields matching a certain criteria",function(){
+    var crit = function(f){
+      return f.num()<4;
+    };
+    var field = arena.field;
+    var actual =arena.filter(crit);
+    var expected = [field(0),field(1),field(2),field(3)];
+    var name = function(f){ return f.toString();};
+    expect(actual).toEqual(expected);
+  });
+
   describe("A Field", function() {
     var Field = arena.field;
     it("is a value-object: iff two instances refer to the same field, they are identical", function() {

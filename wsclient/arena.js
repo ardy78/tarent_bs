@@ -117,6 +117,16 @@ var Arena = function(options) {
       for(var i=0;i<rows*columns;i++){
         cb(Field(i));
       }
+    },
+    filter: function(cb){
+      var r = [];
+      for(var i=0;i<rows*columns;i++){
+        if(cb(Field(i))){
+          r.push(Field(i));
+        }
+      }
+      return r;
+      
     }
   };
 };
