@@ -6,7 +6,6 @@ module.exports = function(state) {
   return {
 
     placeShipsAndMarkWater: function(fields) {
-      debugger;
       // successful -> place
       fields.forEach(function(f) {
         state(f).type = SHIP;
@@ -51,7 +50,6 @@ module.exports = function(state) {
         }
         if (typeof state(nf).type !== "undefined") {
           // field is not free
-          debugger;
  //         console.log("DEBUG: placement not possible, because field is occupied", nf.toString());
           return false;
         }

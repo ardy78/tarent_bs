@@ -8,8 +8,8 @@ function PositionsBook( opts ){
   var ship;
 
   var defaults = {
-    oceanSizeX: 10,
-    oceanSizeY: 10,
+    oceanSizeX: 16,
+    oceanSizeY: 16,
     ships: [
       { classname: 'carrier',
         size: 5,

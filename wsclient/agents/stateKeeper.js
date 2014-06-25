@@ -1,4 +1,5 @@
 var Arena = require('../arena');
+var State = require('../state');
 
 module.exports = function() {
 
@@ -12,18 +13,24 @@ module.exports = function() {
 
   // replace playingField by arena
   var arena = Arena._16x16();
-  var playingField = arena.field;
+  var state = State();
+  var playingField = state;
 
   for (var i = 0; i < 16 * 16; i++) {
     playingField(i).type = "unknown";
   }
 
   var isWater = function(field) {
-    return playingField(field).type == "water";
+    return state(field).type == "water";
   };
 
   var isUnknown = function(field) {
-    return playingField(field).type == "unknown";
+    /*if(typeof state(field).type === "undefined") {
+      return true; 
+    }
+    return false;*/
+    var type = state(field).type;
+    return type !== "water" && type !== "ship";
   };
 
 
@@ -42,7 +49,9 @@ module.exports = function() {
   };
 
   var markSurroundingWater = function(field) {
-    var f = playingField(field);
+    //var f = playingField(field);
+
+    var f = field;
 
     var fields = [
       f.ne(), f.nw(), f.sw(), f.se()
@@ -62,7 +71,7 @@ module.exports = function() {
 
     dirs.forEach(function(dir) {
       countToDir[dir] = 0;
-      var currentField = playingField(field);
+      var currentField = field;
       while (true) {
         currentField = currentField[dir]();
         if (currentField === undefined) {
@@ -72,7 +81,7 @@ module.exports = function() {
 
         if (isUnknown(currentField)) {
           setWater(currentField, W_SUNK);
-          console.log("Field " + f + " is marked as water next to sunk ship!");
+          console.log("Field " + currentField.toString() + " is marked as water next to sunk ship!");
           break;
         }
 
@@ -103,17 +112,17 @@ module.exports = function() {
 
   var handleMessages = function(messages) {
     messages.forEach(function(msg) {
-      msg.field = lastAttackedField;
-      var field = msg.field;
+      var field = lastAttackedField;
+      debugger;
       if (msg.code == 30) {
         playingField(field).type = "water";
         playingField(field).reason = W_MISS;
       } else if (msg.code == 31) {
-        playingField(field).type = "hit";
+        playingField(field).type = "ship";
         //console.log(playingField);
         markSurroundingWater(field);
       } else if (msg.code == 32) {
-        playingField(field).type = "hit";
+        playingField(field).type = "ship";
         markSurroundingWater(field);
         handleSunkShip(field);
         console.log("Ship sunk!");
@@ -133,11 +142,13 @@ module.exports = function() {
       row.push("0123456789ABCDEFGHIJ" [i]);
       row.push(" ");
       for (var j = 0; j < 16; j++) {
-        type = playingField(i,j).type;
-        if (type == "water") {
-          var reason = playingField(i,j).reason.toString();
+
+        var field = arena.field(j,i);
+        type = state(field).type;
+        if (type === "water") {
+          var reason = state(field).reason.toString();
           letter = reason + " ";
-        } else if (type == "hit") {
+        } else if (type === "ship") {
           letter = "X ";
         } else {
           letter = "- ";
@@ -157,7 +168,10 @@ module.exports = function() {
     },
     isWater: isWater,
     isHit: function(field) {
-      return playingField(field).type == "hit";
+      return playingField(field).type == "ship";
+    },
+    isShip: function(field) {
+      return playingField(field).type == "ship";
     },
     isUnknown: isUnknown,
     remainingShips: function() {
