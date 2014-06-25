@@ -8,8 +8,8 @@ function PositionsBook( opts ){
   var ship;
 
   var defaults = {
-    oceanSizeX: 10,
-    oceanSizeY: 10,
+    oceanSizeX: 16,
+    oceanSizeY: 16,
     ships: [
       { classname: 'carrier',
         size: 5,
@@ -48,8 +48,34 @@ function PositionsBook( opts ){
 
 PositionsBook.prototype.createPositionsBoard = createPositionsBoard;
 
-PositionsBook.prototype.getSample = function( x, y , ss){
-  return getSample( this.positionBoards, x, y, ss);
+PositionsBook.prototype.getSample = function( x, y, ss){
+  var i,
+      low,
+      hi,
+      sample,
+      coord1,
+      coord2,
+      height;
+  sample = 0;
+
+  if( !this.isWithinOceanBounds(x,y) ){ return 0; }
+  
+  this.positionBoards.forEach(function(posBrd){
+    coord1 = posBrd.isVertical ? x : y;
+    coord2 = posBrd.isVertical ? y : x;
+    height = posBrd.isVertical ? posBrd.sizeX : posBrd.sizeY;
+    low = Math.max(0,coord2+1-posBrd.shipSize); 
+    hi  = Math.min(height-posBrd.shipSize,coord2);
+    for( i=low; i<= hi; i++ ){
+      if (typeof posBrd.positions[i*height+coord1] === "undefined" ) {
+         sample += ss ? posBrd.shipSize : 1;
+      }else{
+         sample += 0; 
+      }
+    }
+  });
+
+  return sample;  
 }
 
 PositionsBook.prototype.registerMiss = function( x, y ){
@@ -68,7 +94,12 @@ PositionsBook.prototype.suggest = function ( ){
       samples.push( { x: i, 
                       y: j, 
                       posCount1: this.getSample(i, j, true), 
-                      posCount2: this.getSample(i, j, false)
+                      posCount2: this.getSample(i, j, false),
+                      posCount3: this.getSample(i-1,j-1,true) + 
+                                 this.getSample(i-1,j+1,true) + 
+                                 this.getSample(i+1,j-1,true) + 
+                                 this.getSample(i+1,j+1,true)
+
       });
     }
   }
@@ -76,12 +107,18 @@ PositionsBook.prototype.suggest = function ( ){
     highest = e.posCount1 > highest ? e.posCount1 : highest;
   },this);
 
-  return samples.filter( function(e){ return e.posCount1 == highest }, this);
-  
+//  return samples.filter( function(e){ return e.posCount1 == highest }, this);
+  return samples.sort( function(e1,e2) { 
+    if( e1.posCount1 < e2.posCount1 ) {return 1};
+    if( e1.posCount1 > e2.posCount1 ) {return -1};
+    if( e1.posCount1 === e2.posCount1 && e1.posCount3 < e2.posCount3) {return 1};
+    if( e1.posCount1 === e2.posCount1 && e1.posCount3 > e2.posCount3) {return -1};
+    return 0;
+  });  
 }
 
 PositionsBook.prototype.draw = function() {
-  drawPosBoards(this.positionBoards);
+//  drawPosBoards(this.positionBoards);
   drawField(this.ocean, this.options.oceanSizeX, this.options.oceanSizeY, false);
 }
 
@@ -104,32 +141,11 @@ function createPositionsBoard( oceanSizeX, oceanSizeY, shipSize, isVertical ){
   return pb;
 }
 
-function getSample(posBoards,x,y,ss){
-  var i,
-      low,
-      hi,
-      sample,
-      coord1,
-      coord2,
-      height;
-  sample = 0;
-  posBoards.forEach(function(posBrd){
-    coord1 = posBrd.isVertical ? x : y;
-    coord2 = posBrd.isVertical ? y : x;
-    height = posBrd.isVertical ? posBrd.sizeX : posBrd.sizeY;
-    low = Math.max(0,coord2+1-posBrd.shipSize); 
-    hi  = Math.min(height-posBrd.shipSize,coord2);
-    for( i=low; i<= hi; i++ ){
-      if (typeof posBrd.positions[i*height+coord1] === "undefined" ) {
-         sample += ss ? posBrd.shipSize : 1;
-      }else{
-         sample += 0; 
-      }
-    }
-  });
-
-  return sample;
+PositionsBook.prototype.isWithinOceanBounds = function(x,y){
+  return (x >= 0) && (y >= 0) && (x < this.options.oceanSizeX) && (y < this.options.oceanSizeY);
 }
+
+
 
 function registerMiss(posBoards,x,y){
   var i,
