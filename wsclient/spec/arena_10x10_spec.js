@@ -46,7 +46,6 @@ describe("The 10x10 Arena:", function() {
     });
 
     it("can be refered to by its row and column number", function() {
-      console.log(Field(1,5).toString(),Field(15).toString());
       expect(Field(1, 5)).toBe(Field(15));
     });
 

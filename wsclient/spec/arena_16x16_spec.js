@@ -26,6 +26,7 @@ describe("The 16x16 Arena:", function() {
 
     it("has a string represntation", function() {
       expect(Field(0x2f).toString()).toBe("2f");
+      expect(Field(0x0a).toString()).toBe("0a");
     });
 
     it("knows its row and column in the arena grid", function() {

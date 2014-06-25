@@ -154,7 +154,8 @@ module.exports._16x16 = function(options) {
       return parseInt(s, 16);
     },
     renderField: function(field) {
-      return field.num().toString(16);
+      var str = field.num().toString(16);
+      return "00".substr(str.length)+str;
     },
     rowLabel: function(n) {
       return n.toString(16);
@@ -163,4 +164,4 @@ module.exports._16x16 = function(options) {
       return n.toString(16);
     }
   }), options);
-}
+};

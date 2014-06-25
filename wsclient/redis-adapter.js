@@ -1,9 +1,10 @@
-module.exports = function(arena, channel,actions,reflect) {
+module.exports = function(arena, channel,actions0,reflect) {
   var redis = require("redis");
   var receiver = redis.createClient();
   var transmitter = redis.createClient();
   var name = "redis_adapter_" + process.pid;
   var Field = arena.field;
+  var actions;
 
   var parseFact = function(string, cb) {
     var parts = string.split(/\s+/);
@@ -64,6 +65,12 @@ module.exports = function(arena, channel,actions,reflect) {
   };
 
   receiver.on("subscribe", function(channel, count) {
+    if(typeof actions0 ==="function"){
+      actions = actions0(publish);
+    }
+    else{
+      actions = actions0;
+    }
     if (typeof actions.initialize === "function") {
       actions.initialize(publish);
     }

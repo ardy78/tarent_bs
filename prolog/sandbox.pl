@@ -35,14 +35,18 @@ destroyer(S,Vars):-ship(3,S,Vars).
 submarine(S,Vars):-ship(2,S,Vars).
 
 fleet(Ships,Vars):-
-  Ships = [Ca1,Ca2,Cr1,Cr2,De1,De2,Su1,Su2],
+  Ships = [Ca1,Ca2,Cr1,Cr2
+          %,De1,De2,Su1,Su2
+          ],
   carrier(Ca1,V1),carrier(Ca2,V2),
   cruiser(Cr1,V3),cruiser(Cr2,V4),
-  destroyer(De1,V5),destroyer(De2,V6),
-  submarine(Su1,V7),submarine(Su2,V8),
+%  destroyer(De1,V5),destroyer(De2,V6),
+%  submarine(Su1,V7),submarine(Su2,V8),
   pairs(Ships,Pairs),
   maplist(min_dist,Pairs),
-  flatten([V1,V2,V3,V4,V5,V6,V7,V8],Vars).
+  flatten([V1,V2,V3,V4
+          %,V5,V6,V7,V8
+          ],Vars).
 
 
 
