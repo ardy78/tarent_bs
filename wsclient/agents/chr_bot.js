@@ -36,7 +36,7 @@ module.exports = function(){
     var f;
     do {
       f = arena.randomField();
-    } while (f.state === 'free' || f.tried)
+    } while (f.state === 'free' || f.tried);
     return f;
   };
 
@@ -56,7 +56,7 @@ module.exports = function(){
       return " ";
     };
     console.log(Visualizer(arena).render(cell));
-  }
+  };
   var decorateShips = function(delegatee) {
     var commit;
     var decorateEmit = function(emit) {
@@ -93,7 +93,7 @@ module.exports = function(){
         var f;
         do {
           f = recommendedFields.pop();
-        } while (typeof f !== "undefined" && (f.state === 'free' || f.tried))
+        } while (typeof f !== "undefined" && (f.state === 'free' || f.tried));
 
         if (f) {
           console.log("attacking recommended field", f.toString());
