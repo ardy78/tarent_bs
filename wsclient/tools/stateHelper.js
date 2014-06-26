@@ -9,7 +9,7 @@ module.exports = function(state) {
       // successful -> place
       fields.forEach(function(f) {
         state(f).type = SHIP;
-        console.log("placed ship on field", f.toString());
+  //      console.log("placed ship on field", f.toString());
         // mark corners
         ["nw", "ne", "se", "sw"].forEach(function(corner) {
           var cf = f[corner]();

@@ -40,7 +40,7 @@ module.exports = function() {
           if (newState(currentField).type !== "ship") {
             //if (isUnknown(newState, currentField)) {
             setWater(newState, currentField, "SHIP_SUNK");
-            console.log("[HandleSunkShip] Field " + currentField.toString() + " is marked as water next to sunk ship!");
+            //console.log("[HandleSunkShip] Field " + currentField.toString() + " is marked as water next to sunk ship!");
             break;
           }
 
@@ -62,15 +62,15 @@ module.exports = function() {
         ships=newState("enemyShips").remaining=[5,5,4,4,3,3,2,2];
       }
       if (fS > 0 || fN > 0) {
-        console.log("[HandleSunkShip] Sunk ship is vertical. There are " + fN + " hits to North and " + fS + " hits to South from " + anyField.toString());
+        //console.log("[HandleSunkShip] Sunk ship is vertical. There are " + fN + " hits to North and " + fS + " hits to South from " + anyField.toString());
         var length = 1 + fS + fN;
         ships.splice(ships.indexOf(length), 1); // removes the first occurence of 'length' in the ships array
       } else if (fE > 0 || fW > 0) {
-        console.log("[HandleSunkShip] Sunk ship is horizontal. There are " + fW + " hits to West and " + fE + " hits to East from " + anyField.toString());
+        //console.log("[HandleSunkShip] Sunk ship is horizontal. There are " + fW + " hits to West and " + fE + " hits to East from " + anyField.toString());
         var length = 1 + fW + fE;
         ships.splice(ships.indexOf(length), 1); // removes the first occurence of 'length' in the ships array
       }
-      console.log("[HandleSunkShip] Remaining Ships:", ships);
+      //console.log("[HandleSunkShip] Remaining Ships:", ships);
 
       newState("enemyShips").remaining = ships;
 

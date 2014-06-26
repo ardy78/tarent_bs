@@ -12,7 +12,7 @@ module.exports = function(emit, actions, states) {
   return obj(defaultState(states), {
     name: "placing",
     enter: function() {
-      console.log("enter placing");
+      //console.log("enter placing");
       actions.ships(function(theShips) {
         ships = theShips;
         placeShip();

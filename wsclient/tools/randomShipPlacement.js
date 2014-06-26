@@ -21,7 +21,7 @@ module.exports = function() {
           res.push(f.toString());
         });
 
-        console.log("placed ship", res);
+        //console.log("placed ship", res);
         return res.join(",");
       },
     };
@@ -42,13 +42,13 @@ module.exports = function() {
     // place Ships
     var ships = [2, 2, 3, 3, 4, 4, 5, 5];
 
-  //  console.log("Placing the following ships:", ships);
+  //  //console.log("Placing the following ships:", ships);
 
     var placedShips = [];
     // begin with largest ship:
     ships.reverse().forEach(function(ship) {
       var length = ship;
-  //    console.log("Placing ship:", length);
+  //    //console.log("Placing ship:", length);
       var nextTry = function() {
         var startField = getRandomField();
         var dir;
@@ -68,12 +68,12 @@ module.exports = function() {
 
         placedShips.push(Ship(fields));
 
-  //      console.log(visualizer.render(state.visualize));
+  //      //console.log(visualizer.render(state.visualize));
 
         return true;
       };
       var tries = 0;
-      console.log("start with tries="+tries);
+      //console.log("start with tries="+tries);
       while (!nextTry()) {
         tries++;
         if (tries > maxTries) {
@@ -88,16 +88,16 @@ module.exports = function() {
 
   return function(emit) {
     var placed = false;
-    console.log("START: Random ship placement....");
+    //console.log("START: Random ship placement....");
     while (!placed) {
   //    try {
         var ships = placeShips(100);
         emit(ships);
         placed = true;
   //    } catch (e) {
-  //      console.log("Placing ships failed after 100 iterations.. restarting..", e);
+  //      //console.log("Placing ships failed after 100 iterations.. restarting..", e);
   //    }
     }
-    console.log("END: Random ship placement finished.");
+    //console.log("END: Random ship placement finished.");
   };
 }
