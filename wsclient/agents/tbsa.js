@@ -93,6 +93,9 @@ module.exports = function() {
   };
 
   return {
+    reset: function(){
+      state=State();
+    },
     name: function() {
       return "tbsa@"+process.pid;
     },

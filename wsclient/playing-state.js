@@ -55,15 +55,15 @@ module.exports = function(emit, actions, states) {
     },
     37: function() {
       redisClient.publish("battleship_loser",actions.name());
-      emit("disconnect");
-      process.exit(0);
+      //emit("disconnect");
+      //process.exit(0);
     },
     33: function() {
       if( !won ){
         won = true;
         redisClient.publish("battleship_winner",actions.name());
-        emit("disconnect");
-        process.exit(0);
+        //emit("disconnect");
+        //process.exit(0);
       }
     }
   });

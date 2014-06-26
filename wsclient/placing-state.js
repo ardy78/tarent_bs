@@ -32,7 +32,7 @@ module.exports = function(emit, actions, states) {
     },
     33: function() {
       // enemy surrendered while placing...!?
-      process.exit(0);
+//      process.exit(0);
     }
   });
 };

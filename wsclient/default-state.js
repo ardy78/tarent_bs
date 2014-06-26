@@ -4,6 +4,9 @@ module.exports=function(states){
       if(msg.code>=90){
         return states.error;
       }
+    },
+    9:function(){
+      return states.initial;
     }
   };
-}
+};

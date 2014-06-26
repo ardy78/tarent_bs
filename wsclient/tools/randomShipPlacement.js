@@ -9,9 +9,6 @@ module.exports = function() {
   var SHIP = "occ";
 
   var arena = Arena._16x16();
-  var state = State();
-  var stateHelper = StateHelper(state);
-  var visualizer = Visualizer(arena);
 
   var Ship = function(fields) {
     return {
@@ -37,19 +34,21 @@ module.exports = function() {
   };
 
   var placeShips = function(maxTries) {
+    var state = State();
+    var stateHelper = StateHelper(state);
+    var visualizer = Visualizer(arena);
 
-    var tries = 0;
 
     // place Ships
     var ships = [2, 2, 3, 3, 4, 4, 5, 5];
 
-    console.log("Placing the following ships:", ships);
+  //  console.log("Placing the following ships:", ships);
 
     var placedShips = [];
     // begin with largest ship:
     ships.reverse().forEach(function(ship) {
       var length = ship;
-      console.log("Placing ship:", length);
+  //    console.log("Placing ship:", length);
       var nextTry = function() {
         var startField = getRandomField();
         var dir;
@@ -69,16 +68,18 @@ module.exports = function() {
 
         placedShips.push(Ship(fields));
 
-        console.log(visualizer.render(state.visualize));
+  //      console.log(visualizer.render(state.visualize));
 
         return true;
       };
+      var tries = 0;
+      console.log("start with tries="+tries);
       while (!nextTry()) {
         tries++;
         if (tries > maxTries) {
-          throw new Error("to many tries");
+          throw new Error("to many tries:"+tries);
         }
-      };
+      }
     });
     return placedShips;
   };
