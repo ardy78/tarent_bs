@@ -7,6 +7,12 @@ module.exports=function(states){
     },
     9:function(){
       return states.initial;
+    },
+    37:function(){
+      return states.initial;
+    },
+    33:function(){
+      return states.initial;
     }
   };
 };

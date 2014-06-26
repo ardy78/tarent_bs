@@ -67,14 +67,14 @@ describe("Managa Man", function() {
     managa.message("foo");
     managa.message("bar");
     expect(emitted).toEqual([
-    "start 1 foo bar"
+    "start 5 foo bar"
     ]);
 
   });
 
   it("does not start a new match if one is already on",function(){
     managa = Managa(emit);
-    managa.message("Starting a 1 round game, tbsa@5339 vs. tbsa@5595.");
+    managa.message("Starting a 5 round game, tbsa@5339 vs. tbsa@5595.");
     emitted = [];
     managa.message("foo");
     managa.message("bar");

@@ -5,9 +5,10 @@ module.exports=function(emit,actions,states){
   return obj(defaultState(states),{
     name:"initial",
     enter: function(){
+      console.log("enter initial");
       if(typeof actions.reset==="function"){
         actions.reset();
-      };
+      }
       emit("play");
 
     },

@@ -53,6 +53,7 @@ module.exports = function(emit, actions, states) {
       executingSpecialMove=false;
       yourTurn();
     },
+   /*
     37: function() {
       redisClient.publish("battleship_loser",actions.name());
       //emit("disconnect");
@@ -66,5 +67,6 @@ module.exports = function(emit, actions, states) {
         //process.exit(0);
       }
     }
+   */
   });
 };
