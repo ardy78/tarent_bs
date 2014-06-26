@@ -5,7 +5,7 @@ var Visualizer = require("../visualizer");
 var State = require("../state");
 var VesselDetector = require("../vessel-detector.js");
 var FreeCounter = require("../free-counter.js");
-
+var SunkShipHandler = require("../tools/shipSunkHandler.js");
 var shuffle = require('knuth-shuffle').knuthShuffle;
 
 module.exports = function() {
@@ -16,6 +16,8 @@ module.exports = function() {
   var vesselDetector = VesselDetector(arena);
   var freeCounter = FreeCounter(arena);
   var state = State();
+  var sunkShipHandler = SunkShipHandler();
+  var overlaps=[0,0,0,0,0,0,0,0,0];
   var decorateShips = function(delegatee) {
     var commit;
     var decorateEmit = function(emit) {
@@ -48,7 +50,7 @@ module.exports = function() {
         state(f).type = "ship";
       },
       32: function(f) {
-        console.log("TODO: implement sunk 32");
+        state=sunkShipHandler.handleSunkShip(state,f);
       },
       40: function(f) {
         console.log("TODO: implement clusterbombed 40");
@@ -63,33 +65,39 @@ module.exports = function() {
 
   var N = function(n){
     var r=[];
-    for(var i;i<n;i++){
+    for(var i=0;i<n;i++){
       r.push(i);
     }
     return r;
   };
 
-  var byNumberOfFitsDescending=function(a,b){
+  var byNumberOfFitsAscending=function(a,b){
     var fits=function(f){
-      return [5,5,4,4,3,3,2,2].reduce(function(prev,cur){
+      var remaining = [5,5,4,4,3,3,2,2];
+      if(state("enemyShips").remaining){
+        remaining = state("enemyShips").remaining;
+      }
+      return remaining.reduce(function(prev,cur){
         return prev + state(f).fits(cur);
       },0);
     };
-    return fits(b)-fits(a);
+    return fits(a)-fits(b);
   };
 
   var createRandomFields = function(){
-    var fields = N(arena.rows()*arena.columns()).map(function(n){return arena.field(n);});
-    shuffle(fields);
-    fields.sort(byNumberOfFitsDescending);
+    var numbers =N(arena.rows()*arena.columns());
+    var fields = numbers.map(function(n){return arena.field(n);});
+    //shuffle(fields);
+    fields.sort(byNumberOfFitsAscending);
     return fields;
   };
 
   return {
     name: function() {
-      return "tarent bullship adapt0r";
+      return "tbsa@"+process.pid;
     },
-    ships: decorateShips(RandomShipPlacement()),
+   // ships: decorateShips(RandomShipPlacement()),
+    ships:RandomShipPlacement(),
     attack: function(messages, callback) {
 
       messages.forEach(processMessage);
@@ -102,6 +110,8 @@ module.exports = function() {
       
       var recommendedFields = arena.filter(function(f){return state(f).recommended;});
       var randomFields = createRandomFields();
+
+     // console.log("randomFields:",randomFields.map(function(f){return f.toString();}).join(", "));
 
       do {
         f = recommendedFields.pop();
@@ -123,7 +133,8 @@ module.exports = function() {
           callback(f.toString());
         }
       }
-      f.tried = true;
+      state(f).tried = true;
+      lastAttackedField=f;
     }
   };
 };

@@ -1,4 +1,4 @@
-var serverUrl = "ws://localhost:40000/battle"
+var serverUrl = "ws://localhost:40000/battle";
 var agent = "default";
 console.log(process.argv);
 if (process.argv.length > 2) {

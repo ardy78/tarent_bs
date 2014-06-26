@@ -58,6 +58,9 @@ module.exports = function() {
 
       // destroy it!!!!
       var ships = newState("enemyShips").remaining;
+      if(typeof ships === "undefined"){
+        ships=newState("enemyShips").remaining=[5,5,4,4,3,3,2,2];
+      }
       if (fS > 0 || fN > 0) {
         console.log("[HandleSunkShip] Sunk ship is vertical. There are " + fN + " hits to North and " + fS + " hits to South from " + anyField.toString());
         var length = 1 + fS + fN;
