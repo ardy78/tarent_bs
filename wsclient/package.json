@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "async": "~0.9.0",
+    "charm": "^0.2.0",
     "knuth-shuffle": "^1.0.0",
     "node-commandline": "~0.2.0",
     "promise": "^5.0.0",

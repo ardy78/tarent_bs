@@ -7,7 +7,10 @@ var VesselDetector = require("../vessel-detector.js");
 var FreeCounter = require("../free-counter.js");
 var SunkShipHandler = require("../tools/shipSunkHandler.js");
 var shuffle = require('knuth-shuffle').knuthShuffle;
-
+var Fleet = require('../fleet.js');
+var charm = require('charm')();
+charm.pipe(process.stdout);
+charm.reset();
 module.exports = function() {
   var lastAttackedField;
   var arena = Arena._16x16();
@@ -18,20 +21,24 @@ module.exports = function() {
   var state = State();
   var sunkShipHandler = SunkShipHandler();
   var overlaps=[0,0,0,0,0,0,0,0,0];
+  var fleet;
   var decorateShips = function(delegatee) {
     var commit;
     var decorateEmit = function(emit) {
-      return function(fleet) {
-        overlaps = Projection.overlaps(fleet);
+      return function(ships) {
+        fleet=Fleet(arena,ships.map(function(ship){
+          return ship.asFields();
+        }));
+        //overlaps = Projection.overlaps(ships);
         commit = function() {
-          emit(fleet);
+          emit(ships);
         };
       };
     };
     return function(emit) {
-      do {
+      //do {
         delegatee(decorateEmit(emit));
-      } while (overlaps[5] < 3);
+      //} while (overlaps[5] < 3);
       commit();
       console.log("overlaps", overlaps);
     };
@@ -51,6 +58,15 @@ module.exports = function() {
       },
       32: function(f) {
         state=sunkShipHandler.handleSunkShip(state,f);
+      },
+      34: function(f){
+        fleet.attacked(f);
+      },
+      35: function(f){
+        fleet.attacked(f);
+      },
+      36: function(f){
+        fleet.attacked(f);
       },
       40: function(f) {
         console.log("TODO: implement clusterbombed 40");
@@ -87,7 +103,7 @@ module.exports = function() {
   var createRandomFields = function(){
     var numbers =N(arena.rows()*arena.columns());
     var fields = numbers.map(function(n){return arena.field(n);});
-    //shuffle(fields);
+    shuffle(fields);
     fields.sort(byNumberOfFitsAscending);
     return fields;
   };
@@ -99,16 +115,17 @@ module.exports = function() {
     name: function() {
       return "tbsa@"+process.pid;
     },
-   // ships: decorateShips(RandomShipPlacement()),
-    ships:RandomShipPlacement(),
+    ships: decorateShips(RandomShipPlacement()),
+//  ships:RandomShipPlacement(),
     attack: function(messages, callback) {
 
       messages.forEach(processMessage);
 
       state = vesselDetector.scan(state);
       state = freeCounter.scan(state);
-
-      console.log(visualizer.render(state.visualize));
+      charm.position(0,1);
+      console.log(visualizer.render(fleet.visualize, state.visualize));
+      charm.erase("down");
       var f;
       
       var recommendedFields = arena.filter(function(f){return state(f).recommended;});
