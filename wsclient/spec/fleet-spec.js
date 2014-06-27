@@ -191,4 +191,15 @@ describe("The Fleet", function() {
       2: 1
     });
   });
+
+  it("records how long (how many misses) it took the enemy to uncover a ship",function(){ 
+      
+    var fleet = Fleet(arena, ships);
+    fleet.message({code:34},fld(0x31));
+    fleet.message({code:34},fld(0x21));
+    fleet.message({code:35},fld(0x01));
+    fleet.message({code:34},fld(0x00));
+    fleet.message({code:35},fld(0x02));
+    expect(fleet.vesselAt(fld(0x01)).missed).toBe(2);
+  });
 });

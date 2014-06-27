@@ -13,10 +13,6 @@ describe("The initial state", function() {
     expect(state.name).toBe("initial");
   });
 
-  it("emits 'play' when entered", function() {
-    state.enter();
-    expect(emit).toHaveBeenCalledWith("play");
-  });
 
   it("emits bot name when receiving 01 hello",function(){
     actions.name = function(){

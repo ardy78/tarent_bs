@@ -17,7 +17,7 @@ module.exports = function(arena, ships) {
     };
   };
   var specials = Projection.overlaps(ships.map(Ship));
-
+  var missCount = 0;
   var state = State();
   flatten(ships).forEach(function(f) {
     state(f).type = "ship";
@@ -55,6 +55,9 @@ module.exports = function(arena, ships) {
         if (typeof v.hits === "undefined") {
           v.hits = [];
         }
+        if(typeof v.missed === "undefined") {
+          v.missed = missCount;
+        }
         if (v.hits.indexOf(f) === -1) {
           v.hits.push(f);
         }
@@ -87,12 +90,13 @@ module.exports = function(arena, ships) {
     },
     message: function(m, f) {
       switch (m.code) {
-        case 34:
-        case 35:
+        case 34: //miss
+          missCount++;
+        case 35: //hit
           this.attacked(f);
           break;
         case 36:
-          console.log("server thinks my ship at",f.toString(),"sank");
+        //  console.log("server thinks my ship at",f.toString(),"sank");
           this.vesselAt(f).sunk = true;
           break;
         case 40: //clusterbomb used, 5
@@ -107,10 +111,18 @@ module.exports = function(arena, ships) {
         case 43: //torpedo used, 2
           specials[2]--;
           break;
+        case 33:
+          case 37:
+        case 38:
+          console.log("some statistics from your fleet admiral:");
+          console.log(vessels.map(function(v){
+            return v.size+"@"+v.head+": "+v.missed;
+          }).join("\n"));
+          break;
         default:
           //notttin.
       }
-      console.log("fleet: "+specials);
+     // console.log("fleet: "+specials);
     }
   };
 };
