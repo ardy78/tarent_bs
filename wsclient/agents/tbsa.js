@@ -86,6 +86,7 @@ module.exports = function() {
     return r;
   };
 
+
   var byNumberOfFitsAscending = function(a, b) {
     var fits = function(f) {
       var remaining = [5, 5, 4, 4, 3, 3, 2, 2];
@@ -99,6 +100,23 @@ module.exports = function() {
     return fits(a) - fits(b);
   };
 
+  var byNumberOfCBFitsAscending = function(a, b) {
+    var fits = function(f) {
+      var remaining = [5, 5, 4, 4, 3, 3, 2, 2];
+      if (state("enemyShips").remaining) {
+        remaining = state("enemyShips").remaining;
+      }
+      var fields =[f,f.n(),f.s(),f.w(),f.e()].filter(function(x){return x;});
+      return remaining.reduce(function(prev, cur) {
+        var sumFits = fields.reduce(function(sum, currentField) {
+          return prev + state(currentField).fits(cur);
+        }, 0);
+        return prev + sumFits;
+      }, 0);
+    };
+    return fits(a) - fits(b);
+  };
+
   var createRandomFields = function() {
     var numbers = N(arena.rows() * arena.columns());
     var fields = numbers.map(function(n) {
@@ -106,6 +124,15 @@ module.exports = function() {
     });
     shuffle(fields);
     fields.sort(byNumberOfFitsAscending);
+    return fields;
+  };
+  var createRandomCBFields = function() {
+    var numbers = N(arena.rows() * arena.columns());
+    var fields = numbers.map(function(n) {
+      return arena.field(n);
+    });
+    shuffle(fields);
+    fields.sort(byNumberOfCBFitsAscending);
     return fields;
   };
 
@@ -124,15 +151,17 @@ module.exports = function() {
 
       state = vesselDetector.scan(state);
       state = freeCounter.scan(state);
-      // charm.position(0,1);
+      charm.position(0, 1);
       console.log(visualizer.render(fleet.visualize, state.visualize));
-      // charm.erase("down");
+      charm.erase("down");
       var f;
 
       var recommendedFields = arena.filter(function(f) {
         return state(f).recommended;
       });
       var randomFields = createRandomFields();
+
+      var randomCBFields = createRandomCBFields();
 
       // console.log("randomFields:",randomFields.map(function(f){return f.toString();}).join(", "));
 
@@ -144,14 +173,17 @@ module.exports = function() {
         console.log("attacking recommended field", f.toString());
         callback(f.toString());
       } else {
-        do {
-          f = randomFields.pop();
-        } while (typeof f !== "undefined" && (state(f).type || state(f).tried));
         if (fleet.specials()[5] > 0) {
+          do {
+            f = randomCBFields.pop();
+          } while (typeof f !== "undefined" && (state(f).type || state(f).tried));
           console.log("specials", fleet.specials());
           console.log("clusterombing random field", f.toString());
           callback("+" + f.toString());
         } else {
+          do {
+            f = randomFields.pop();
+          } while (typeof f !== "undefined" && (state(f).type || state(f).tried));
           console.log("attacking random field", f.toString());
           callback(f.toString());
         }
