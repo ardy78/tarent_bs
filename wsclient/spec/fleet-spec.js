@@ -70,7 +70,6 @@ describe("The Fleet", function() {
 
     fleet.attacked(fld(0xc3));
     fleet.attacked(fld(0xd4));
-
     var actual = visualizer.render(fleet.visualize);
     var expected = [
       "  0 1 2 3 4 5 6 7 8 9 a b c d e f",
@@ -92,5 +91,104 @@ describe("The Fleet", function() {
       "f               o o     o o      "
     ].join('\n');
     expect(actual).toEqual(expected);
+  });
+  it("can interprete messages itself", function() {
+    var fleet = Fleet(arena, ships);
+
+    fleet.message({
+      code: 34,
+      fld: "C3"
+    },fld(0xc3));
+    fleet.message({
+      code: 34,
+      fld: "C5"
+    },fld(0xc5));
+    var actual = visualizer.render(fleet.visualize);
+    var expected = [
+      "  0 1 2 3 4 5 6 7 8 9 a b c d e f",
+      "0   o o o o o                    ",
+      "1                                ",
+      "2   o o o                        ",
+      "3                                ",
+      "4                                ",
+      "5   o o o                        ",
+      "6                                ",
+      "7                                ",
+      "8                                ",
+      "9                                ",
+      "a                                ",
+      "b                                ",
+      "c   o o * o x o o o o            ",
+      "d                                ",
+      "e   o o o o o                    ",
+      "f               o o     o o      "
+    ].join('\n');
+    expect(actual).toEqual(expected);
+  });
+
+  it("knows how many hits any of our vessels has taken so far", function() {
+    var fleet = Fleet(arena, ships);
+
+    fleet.attacked(fld(0xc3));
+    fleet.attacked(fld(0xc3));
+    fleet.attacked(fld(0xc1));
+    fleet.attacked(fld(0xd4));
+    expect(fleet.vesselAt(fld(0xc3)).hits).toEqual([fld(0xc3), fld(0xc1)]);
+  });
+
+  it("knows when one our ships is sunk", function() {
+
+    var fleet = Fleet(arena, ships);
+
+    fleet.attacked(fld(0x21));
+    fleet.attacked(fld(0x22));
+    fleet.attacked(fld(0x51));
+    fleet.attacked(fld(0x52));
+    fleet.attacked(fld(0x53));
+    expect(fleet.vesselAt(fld(0x23)).sunk).toBeFalsy();
+    expect(fleet.vesselAt(fld(0x52)).sunk).toBeTruthy();
+  });
+  it("trusts the server it tells us that our ship is sunk", function() {
+
+    var fleet = Fleet(arena, ships);
+
+    fleet.message({code:36},fld(0x52));
+    expect(fleet.vesselAt(fld(0x52)).sunk).toBeTruthy();
+  });
+
+  it("knows how many special attacks are initialy available", function() {
+    var fleet = Fleet(arena, ships);
+
+    expect(fleet.specials()).toEqual({
+      5: 5,
+      4: 1,
+      3: 3,
+      2: 1
+    });
+  });
+
+  it("sets available special to zero if both ships of a given size have been sunk",function(){
+    var fleet = Fleet(arena, ships);
+    fleet.message({code:36},fld(0x21));
+    fleet.message({code:36},fld(0x51));
+    expect(fleet.specials()).toEqual({
+      5: 5,
+      4: 1,
+      3: 0,
+      2: 1
+    });
+  });
+
+  it("decrements specials if when they are used",function(){
+    var fleet = Fleet(arena, ships);
+    fleet.message({code:41});
+    fleet.message({code:42});
+    fleet.message({code:42});
+    expect(fleet.specials()).toEqual({
+      5: 5,
+      4: 0,
+      3: 1,
+      2: 1
+    });
   });
 });

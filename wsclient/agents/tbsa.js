@@ -20,27 +20,25 @@ module.exports = function() {
   var freeCounter = FreeCounter(arena);
   var state = State();
   var sunkShipHandler = SunkShipHandler();
-  var overlaps=[0,0,0,0,0,0,0,0,0];
   var fleet;
   var decorateShips = function(delegatee) {
     var commit;
     var decorateEmit = function(emit) {
       return function(ships) {
-        fleet=Fleet(arena,ships.map(function(ship){
+        fleet = Fleet(arena, ships.map(function(ship) {
           return ship.asFields();
         }));
-        //overlaps = Projection.overlaps(ships);
+        console.log("fleet placement results in specials:", JSON.stringify(fleet.specials(), null, "  "));
         commit = function() {
           emit(ships);
         };
       };
     };
     return function(emit) {
-      //do {
+      do {
         delegatee(decorateEmit(emit));
-      //} while (overlaps[5] < 3);
+      } while (fleet.specials()[5] < 3);
       commit();
-      console.log("overlaps", overlaps);
     };
   };
 
@@ -49,27 +47,28 @@ module.exports = function() {
     if (!f) {
       return;
     }
+    fleet.message(msg, f);
     var interprete = {
       30: function(f) {
         state(f).type = "water";
       },
       31: function(f) {
+        console.log("treffer", f.toString());
         state(f).type = "ship";
       },
       32: function(f) {
-        state=sunkShipHandler.handleSunkShip(state,f);
-      },
-      34: function(f){
-        fleet.attacked(f);
-      },
-      35: function(f){
-        fleet.attacked(f);
-      },
-      36: function(f){
-        fleet.attacked(f);
+        state = sunkShipHandler.handleSunkShip(state, f);
       },
       40: function(f) {
-        console.log("TODO: implement clusterbombed 40");
+        console.log("TODO: implement clusterbombed 40 ", f.toString());
+        var markWater = function(f) {
+          var s = state(f);
+          if (typeof s.type === "undefined") {
+            s.type = "water";
+          }
+        };
+
+        [f, f.n(), f.w(), f.s(), f.e()].forEach(markWater);
       }
     }[msg.code];
 
@@ -79,59 +78,63 @@ module.exports = function() {
   };
 
 
-  var N = function(n){
-    var r=[];
-    for(var i=0;i<n;i++){
+  var N = function(n) {
+    var r = [];
+    for (var i = 0; i < n; i++) {
       r.push(i);
     }
     return r;
   };
 
-  var byNumberOfFitsAscending=function(a,b){
-    var fits=function(f){
-      var remaining = [5,5,4,4,3,3,2,2];
-      if(state("enemyShips").remaining){
+  var byNumberOfFitsAscending = function(a, b) {
+    var fits = function(f) {
+      var remaining = [5, 5, 4, 4, 3, 3, 2, 2];
+      if (state("enemyShips").remaining) {
         remaining = state("enemyShips").remaining;
       }
-      return remaining.reduce(function(prev,cur){
+      return remaining.reduce(function(prev, cur) {
         return prev + state(f).fits(cur);
-      },0);
+      }, 0);
     };
-    return fits(a)-fits(b);
+    return fits(a) - fits(b);
   };
 
-  var createRandomFields = function(){
-    var numbers =N(arena.rows()*arena.columns());
-    var fields = numbers.map(function(n){return arena.field(n);});
+  var createRandomFields = function() {
+    var numbers = N(arena.rows() * arena.columns());
+    var fields = numbers.map(function(n) {
+      return arena.field(n);
+    });
     shuffle(fields);
     fields.sort(byNumberOfFitsAscending);
     return fields;
   };
 
   return {
-    reset: function(){
-      state=State();
+    reset: function() {
+      state = State();
     },
     name: function() {
-      return "tbsa@"+process.pid;
+      return "tbsa@" + process.pid;
     },
     ships: decorateShips(RandomShipPlacement()),
-//  ships:RandomShipPlacement(),
+    //  ships:RandomShipPlacement(),
     attack: function(messages, callback) {
 
       messages.forEach(processMessage);
 
       state = vesselDetector.scan(state);
       state = freeCounter.scan(state);
-      charm.position(0,1);
+      // charm.position(0,1);
       console.log(visualizer.render(fleet.visualize, state.visualize));
-      charm.erase("down");
+      // charm.erase("down");
       var f;
-      
-      var recommendedFields = arena.filter(function(f){return state(f).recommended;});
+
+      var recommendedFields = arena.filter(function(f) {
+        return state(f).recommended;
+      });
       var randomFields = createRandomFields();
 
-     // console.log("randomFields:",randomFields.map(function(f){return f.toString();}).join(", "));
+      // console.log("randomFields:",randomFields.map(function(f){return f.toString();}).join(", "));
 
       do {
         f = recommendedFields.pop();
@@ -144,17 +147,17 @@ module.exports = function() {
         do {
           f = randomFields.pop();
         } while (typeof f !== "undefined" && (state(f).type || state(f).tried));
-        if (overlaps[5] > 0) {
+        if (fleet.specials()[5] > 0) {
+          console.log("specials", fleet.specials());
           console.log("clusterombing random field", f.toString());
           callback("+" + f.toString());
-          overlaps[5]--;
         } else {
           console.log("attacking random field", f.toString());
           callback(f.toString());
         }
       }
       state(f).tried = true;
-      lastAttackedField=f;
+      lastAttackedField = f;
     }
   };
 };

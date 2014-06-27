@@ -20,6 +20,8 @@ describe("Projection", function() {
       expect(overlap("c1,d1,e1,f1,g1", "a3,b3,c3,d3")).toBe(2);
       expect(overlap("c1,c2,c3,c4", "a2,a3,a4,a5")).toBe(3);
       expect(overlap("g1,g2,g3,g4", "f6,g6,h6,i6")).toBe(1);
+      expect(overlap("f7,f8", "fc,fb")).toBe(1);
+      expect(overlap("46,47,48,49,4a","82,83,84,85,86")).toBe(1);
     });
   });
 
