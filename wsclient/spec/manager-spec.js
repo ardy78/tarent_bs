@@ -67,7 +67,7 @@ describe("Managa Man", function() {
     managa.message("foo");
     managa.message("bar");
     expect(emitted).toEqual([
-    "start 5 foo bar"
+    "start 10 foo bar"
     ]);
 
   });

@@ -5,7 +5,6 @@ var redis = require("redis");
 module.exports = function(emit, actions, states) {
   
 
-  var firstMoveDone = false;
   var won = false; //hack to ignore second win-message
   var msgList = [];
   var dflt = defaultState(states);
@@ -21,7 +20,6 @@ module.exports = function(emit, actions, states) {
   var yourTurn = function() {
     // toEmit is a field,
     // TODO: implement special attacks
-    firstMoveDone = true;
     actions.attack(msgList, function(toEmit) {
       emit(toEmit);
       if(toEmit.length>2){
@@ -34,12 +32,9 @@ module.exports = function(emit, actions, states) {
     name: "playing",
     enter: function(){
       console.log('entered playing-state');
-      setTimeout( function(){
-          if( !firstMoveDone ){
-            process.exit(1);
-          }
-        }, 1000
-      );
+      msgList=[];
+      //yourTurn(); 
+      
     },
     defaultAction: function(msg) {
       msgList.push(msg);
@@ -47,6 +42,10 @@ module.exports = function(emit, actions, states) {
         return yourTurn();
       }
       return dflt.defaultAction(msg);
+    },
+    28: function(msg){
+      msgList.push(msg);
+      executingSpecialMove=false;
     },
     29: function(msg){
       msgList.push(msg);

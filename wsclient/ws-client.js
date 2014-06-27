@@ -9,11 +9,7 @@ module.exports=function(serverUrl, agent){
 
   ws.on('open', function() {
     var emit = function(str) {
-      if( str == "disconnect" ){
-        console.log("disconnect:", agent);
-        ws.close();
-        return;
-      }
+      console.log("emit", str);
       ws.send(str);
     };
 
@@ -25,11 +21,12 @@ module.exports=function(serverUrl, agent){
     states.playing = require('./playing-state')(emit, actions, states);
 
     client = Client(states.initial);
+    emit("play");
 
   });
   ws.on('message', function(data, flags) {
-    console.log("incoming", data);
-    client.process(Message(data));
+   // console.log("incoming", data);
+    client.process(Message(data),data);
   });
 
   ws.on('close', function(data, flags){

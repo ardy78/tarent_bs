@@ -9,7 +9,6 @@ module.exports=function(emit,actions,states){
       if(typeof actions.reset==="function"){
         actions.reset();
       }
-      emit("play");
 
     },
     0: function(){

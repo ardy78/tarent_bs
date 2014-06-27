@@ -92,6 +92,7 @@ module.exports = function(arena, ships) {
           this.attacked(f);
           break;
         case 36:
+          console.log("server thinks my ship at",f.toString(),"sank");
           this.vesselAt(f).sunk = true;
           break;
         case 40: //clusterbomb used, 5

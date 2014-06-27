@@ -72,7 +72,7 @@ module.exports = function(emit) {
   when(/^([^\s]+)$/, function(name) {
     players.push(name);
     if(!playing && players.length>1){
-      emit("start 5 "+players[0]+" "+players[1]);
+      emit("start 10 "+players[0]+" "+players[1]);
     }
   });
 

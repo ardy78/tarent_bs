@@ -10,7 +10,7 @@ var shuffle = require('knuth-shuffle').knuthShuffle;
 var Fleet = require('../fleet.js');
 var charm = require('charm')();
 charm.pipe(process.stdout);
-charm.reset();
+//charm.reset();
 module.exports = function() {
   var lastAttackedField;
   var arena = Arena._16x16();
@@ -37,7 +37,7 @@ module.exports = function() {
     return function(emit) {
       do {
         delegatee(decorateEmit(emit));
-      } while (fleet.specials()[5] < 3);
+      } while (fleet.specials()[5] < 5);
       commit();
     };
   };

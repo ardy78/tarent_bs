@@ -1,8 +1,8 @@
 module.exports = function(initialState) {
   var state = initialState;
 
-  var process = function(msg) {
-    //console.log("at ", state.name,msg.code);
+  var process = function(msg,data) {
+    console.log("at ", state.name,msg.code,msg.field,"raw:",data);
     var transition = state[msg.code];
     if (typeof transition != "function") {
       transition = state.defaultAction;
