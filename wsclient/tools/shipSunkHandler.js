@@ -39,7 +39,7 @@ module.exports = function() {
           }
           if (newState(currentField).type !== "ship") {
             //if (isUnknown(newState, currentField)) {
-            setWater(newState, currentField, "SHIP_SUNK");
+            setWater(newState, currentField, "4");
             //console.log("[HandleSunkShip] Field " + currentField.toString() + " is marked as water next to sunk ship!");
             break;
           }
