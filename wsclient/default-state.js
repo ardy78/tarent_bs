@@ -2,8 +2,8 @@ module.exports=function(states){
   return {
     defaultAction: function(msg){
       if(msg.code>=90){
-        throw new Error("so nicht.");
-//        return states.error;
+//        throw new Error("so nicht.");
+        return states.error;
       }
     },
     9:function(){

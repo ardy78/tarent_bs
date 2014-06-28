@@ -106,7 +106,9 @@ module.exports = function() {
       if (state("enemyShips").remaining) {
         remaining = state("enemyShips").remaining;
       }
-      var fields =[f,f.n(),f.s(),f.w(),f.e()].filter(function(x){return x;});
+      var fields = [f, f.n(), f.s(), f.w(), f.e()].filter(function(x) {
+        return x;
+      });
       return remaining.reduce(function(prev, cur) {
         var sumFits = fields.reduce(function(sum, currentField) {
           return prev + state(currentField).fits(cur);
@@ -154,6 +156,11 @@ module.exports = function() {
       charm.position(0, 1);
       console.log(visualizer.render(fleet.visualize, state.visualize));
       charm.erase("down");
+      console.log("some statistics from your fleet admiral:");
+      console.log(fleet.vessels().map(function(v) {
+        return v.size + "@" + v.head + ": " + v.missed;
+      }).join("\n"));
+
       var f;
 
       var recommendedFields = arena.filter(function(f) {
