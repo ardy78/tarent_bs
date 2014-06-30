@@ -1,77 +1,218 @@
 var _ = require('underscore');
 
-
-
-
-function PositionsBook( opts ){
+function PositionsBook( opts, posBrds, rs ){
   var options = opts || {};
-  var ship;
-
+  
   var defaults = {
     oceanSizeX: 16,
     oceanSizeY: 16,
     ships: [
-      { classname: 'carrier',
-        size: 5,
+      { size: 5,
         count: 2
       },
-       { classname: 'cruiser',
-        size: 4,
+       {size: 4,
         count: 2
       },
-       { classname: 'destroyer',
-        size: 3,
+       {size: 3,
         count: 2
       },
-       { classname: 'submarine',
-        size: 2,
+       {size: 2,
         count: 2
       }
     ]
   }
   options = _.extend(defaults, options);
   
-  this.positionBoards = [];
   this.options = options;
-  this.ocean = [];
-  this.ocean.length =this.options.oceanSizeX * this.options.oceanSizeY;
 
-  options.ships.forEach( function(ship) {
-      if( ship.count ){
-        this.positionBoards.push(  
-          this.createPositionsBoard(options.oceanSizeX,options.oceanSizeY,ship.size,0));
-        this.positionBoards.push( 
-          this.createPositionsBoard(options.oceanSizeX,options.oceanSizeY,ship.size,1));
+  if( rs ){
+    this.remainingShips = rs;
+  }else{
+    this.remainingShips = [];
+    this.options.ships.forEach( function(s){
+      for(var i=0;i<s.count;i++){
+        this.remainingShips.push(s.size);
       }
-  }, this);
+    }, this);
+/*    this.remainingShips = {};
+    this.options.ships.forEach( function(s){
+      this.remainingShips[s.size] = s.count;
+    },this);*/
+  }
+
+  if( posBrds ){
+    this.positionBoards = posBrds;
+  }else{
+    this.positionBoards = [];
+
+    options.ships.forEach( function(ship) {
+        if( ship.count ){
+          this.positionBoards.push(  
+            this.createPositionsBoard( options.oceanSizeX, 
+                                       options.oceanSizeY,
+                                       ship.size,
+                                       0));
+          this.positionBoards.push( 
+            this.createPositionsBoard( options.oceanSizeX, 
+                                       options.oceanSizeY,
+                                       ship.size,
+                                       1));
+        }
+    }, this);
+  }
 }
 
-PositionsBook.prototype.createPositionsBoard = createPositionsBoard;
+
+PositionsBook.prototype.positionsCount = function(ships) {
+  var count;
+  var pbs = this.positionBoards;
+  if( ships && ships.length && ships.length > 0 ){
+    pbs = pbs.filter( function(pb){
+      return (ships.indexOf(pb.shipSize) >= 0);
+    });
+  };
+  pbs.forEach( function (pb){
+    if( typeof count === "undefined"){ count = 0 };
+    count += pb.positions.length;
+  }, this);
+  return count;
+}
+
+PositionsBook.prototype.remainingPositionsCount = function(ships) {
+  var count;
+  var pbs = this.positionBoards;
+  if( ships && ships.length && ships.length > 0 ){
+    pbs = pbs.filter( function(pb){
+      return (ships.indexOf(pb.shipSize) >= 0);
+    });
+  };
+  pbs.forEach( function (pb){
+    if( typeof count === "undefined"){ count = 0 };
+    var pbp = pb.positions;
+    count += pbp.reduce( function(a,b){ return a+b },0 );
+  }, this);
+  return count;
+}
+
+PositionsBook.prototype.registerSunkShip = function( shipSize, orient, row, col ) {
+  if( this.remainingShips.indexOf( shipSize ) < 0 ){
+    return
+  }else{
+    this.remainingShips.splice( this.remainingShips.indexOf(shipSize),1 );
+  };
+  if( this.remainingShips.indexOf( shipSize ) < 0 ){
+    this.invalidatePositions([shipSize]);
+  };
+/*  if( this.remainingShips[shipSize] == 0 ){ 
+    return;
+  }else{
+    this.remainingShips[shipSize]--;
+  };
+  if( this.remainingShips[shipSize] == 0 ){ 
+    this.invalidatePositions([shipSize]);
+  }*/
+  if( orient === "vertical" ){
+    this.registerMissRect(col-1, row-1,col+1, row+shipSize);
+  }
+  else if( orient === "horizontal" ){
+    this.registerMissRect(col-1, row-1,col+shipSize, row+1);
+  }
+}
+
+PositionsBook.prototype.invalidatePositions = function(ships){
+  this.positionBoards.filter( function(pb) {
+    return (ships.indexOf(pb.shipSize) >=0 );
+  },this).forEach( function(pb) {
+    for(var i=0,n=pb.positions.length;i<n;i++){
+      pb.positions[i] = 0;
+    };
+  },this);
+}
+
+PositionsBook.prototype.remainingConfigurationsCount = function(positionsBook,ships){
+  var posBk = positionsBook || this;
+  var sv    = ships || posBk.remainingShips;
+  var count = 0;
+  var v_pos;
+debugger;
+  
+  if( sv.length == 0 ) { console.log("svl=0"); return 0 };
+  
+  v_pos = posBk.validPositions(sv.slice(0,1));
+  
+  if( sv.length == 1 ) { console.log("v_pos.l", v_pos.length); return v_pos.length };
+
+  console.log("sv", sv); 
+
+  v_pos.forEach( function( pos ){
+    var cloned_pb = posBk.clone();
+    cloned_pb.registerSunkShip( pos.size, pos.orient, pos.row, pos.col );
+    count += cloned_pb.remainingConfigurationsCount(cloned_pb) 
+    console.log("count", count);
+  });
+
+  return count;
+};
+
+PositionsBook.prototype.validPositions = function( ships ){
+  var v_pos = [];
+  var pbs = this.positionBoards;
+
+  if( ships && ships.length && ships.length > 0){
+    pbs.filter( function(pb) {
+      return (ships.indexOf(pb.shipSize) >=0 );
+    },this);
+  };
+  pbs.forEach( function(pb) {
+    pb.positions.forEach(function(pos,ix) {
+      if( pos ){
+        v_pos.push( {size: pb.shipSize, 
+                     orient: ( (pb.isVertical) ? "vertical" : "horizontal"),
+                     row: ( (pb.isVertical) ? ix % pb.sizeY : Math.floor(ix/pb.sizeX) ),
+                     col: ( (pb.isVertical) ? Math.floor(ix / pb.sizeY) : ix % pb.sizeY)
+                    } );
+      }
+    },this);
+  },this);
+  return v_pos;
+}
+
+PositionsBook.prototype.clone = function() {
+  var options = shallowCopy(this.options);
+  options.ships = this.options.ships.slice();
+
+  var posBrds = [];
+  var rs = this.remainingShips.slice(); 
+
+  this.positionBoards.forEach( function (pb) {
+    posBrds.push( pb.clone() );
+  });
+  var pb = new PositionsBook( options, posBrds, rs ); 
+
+  return pb;
+};
+
 
 PositionsBook.prototype.getSample = function( x, y, ss){
   var i,
+      f,
       low,
       hi,
       sample,
-      coord1,
-      coord2,
-      height;
+      coord,
+      width;
   sample = 0;
-
   if( !this.isWithinOceanBounds(x,y) ){ return 0; }
   
   this.positionBoards.forEach(function(posBrd){
-    coord1 = posBrd.isVertical ? x : y;
-    coord2 = posBrd.isVertical ? y : x;
-    height = posBrd.isVertical ? posBrd.sizeX : posBrd.sizeY;
-    low = Math.max(0,coord2+1-posBrd.shipSize); 
-    hi  = Math.min(height-posBrd.shipSize,coord2);
+    coord  = posBrd.isVertical ? y : x;
+    width  = posBrd.isVertical ? posBrd.sizeY : posBrd.sizeX;
+    low = Math.max(0, coord + 1 - posBrd.shipSize); 
+    hi  = Math.min(coord, width-1);
+    offset = posBrd.isVertical ? x*width : y*width ;
+    f   = (ss) ? posBrd.shipSize : 1;
     for( i=low; i<= hi; i++ ){
-      if (typeof posBrd.positions[i*height+coord1] === "undefined" ) {
-         sample += ss ? posBrd.shipSize : 1;
-      }else{
-         sample += 0; 
-      }
+      sample += posBrd.positions[offset+i] * f;  
     }
   });
 
@@ -79,65 +220,56 @@ PositionsBook.prototype.getSample = function( x, y, ss){
 }
 
 PositionsBook.prototype.registerMiss = function( x, y ){
-  this.ocean[y*this.options.oceanSizeX+x] = 0;
-  registerMiss( this.positionBoards, x, y );
-}
+  if( !this.isWithinOceanBounds(x,y) ){ return; }
+  var i,
+      low,
+      hi,
+      coord,
+      width,
+      offset;
+  
 
-
-PositionsBook.prototype.suggest = function ( ){
-  var samples = [];
-  var i,j,m,n;
-  var highest = 0;
-
-  for( i=0, n=this.options.oceanSizeX; i<n; i++){
-    for( j=0, m=this.options.oceanSizeY; j<m; j++){
-      samples.push( { x: i, 
-                      y: j, 
-                      posCount1: this.getSample(i, j, true), 
-                      posCount2: this.getSample(i, j, false),
-                      posCount3: this.getSample(i-1,j-1,true) + 
-                                 this.getSample(i-1,j+1,true) + 
-                                 this.getSample(i+1,j-1,true) + 
-                                 this.getSample(i+1,j+1,true)
-
-      });
+  this.positionBoards.forEach(function(posBrd){
+    coord  = posBrd.isVertical ? y : x;
+    width  = posBrd.isVertical ? posBrd.sizeY : posBrd.sizeX;
+    low = Math.max(0, coord + 1 - posBrd.shipSize); 
+    hi  = Math.min(coord, width-1);
+    offset = posBrd.isVertical ? x*width : y*width ;
+    for( i=low; i<= hi; i++ ){
+      posBrd.positions[offset+i] = 0;
     }
-  }
-  samples.forEach( function(e){
-    highest = e.posCount1 > highest ? e.posCount1 : highest;
   },this);
 
-//  return samples.filter( function(e){ return e.posCount1 == highest }, this);
-  return samples.sort( function(e1,e2) { 
-    if( e1.posCount1 < e2.posCount1 ) {return 1};
-    if( e1.posCount1 > e2.posCount1 ) {return -1};
-    if( e1.posCount1 === e2.posCount1 && e1.posCount3 < e2.posCount3) {return 1};
-    if( e1.posCount1 === e2.posCount1 && e1.posCount3 > e2.posCount3) {return -1};
-    return 0;
-  });  
-}
+};
 
-PositionsBook.prototype.draw = function() {
-//  drawPosBoards(this.positionBoards);
-  drawField(this.ocean, this.options.oceanSizeX, this.options.oceanSizeY, false);
-}
 
 module.exports = PositionsBook;
 
-function createPositionsBoard( oceanSizeX, oceanSizeY, shipSize, isVertical ){
+PositionsBook.prototype.createPositionsBoard = 
+  function( oceanSizeX, oceanSizeY, shipSize, isVertical ){
+
   var pb = {};
   pb.oceanSizeX  = oceanSizeX;
   pb.oceanSizeY  = oceanSizeY;
   pb.shipSize    = shipSize;
-  pb.isVertical = isVertical;
+  pb.isVertical  = isVertical;
   
   pb.sizeX =  isVertical ? pb.oceanSizeX : (pb.oceanSizeX - pb.shipSize + 1);
   pb.sizeY = !isVertical ? pb.oceanSizeY : (pb.oceanSizeY - pb.shipSize + 1);
-  pb.height = !isVertical ? 
-              (pb.oceanSizeX - pb.shipSize + 1) :
-              (pb.oceanSizeY - pb.shipSize + 1); 
   pb.positions   = [];
   pb.positions.length = (pb.sizeX * pb.sizeY);
+ 
+  for( var i=0,n=pb.positions.length;i<n;i++ ){
+    pb.positions[i] = 1;
+  }
+  
+  pb.clone = function() {
+    var cloned_pb;
+    cloned_pb = shallowCopy(pb);
+    cloned_pb.positions = pb.positions.slice();
+    return cloned_pb;
+  }
+
   return pb;
 }
 
@@ -146,105 +278,22 @@ PositionsBook.prototype.isWithinOceanBounds = function(x,y){
 }
 
 
-
-function registerMiss(posBoards,x,y){
-  var i,
-      low,
-      hi,
-      sample,
-      coord1,
-      coord2,
-      height;
-
-  posBoards.forEach(function(posBrd){
-    coord1 = posBrd.isVertical ? x : y;
-    coord2 = posBrd.isVertical ? y : x;
-    height = posBrd.isVertical ? posBrd.sizeX : posBrd.sizeY;
-    low = Math.max(0,coord2+1-posBrd.shipSize); 
-    hi  = Math.min(height-posBrd.shipSize,coord2);
-    for( i=low; i<= hi; i++ ){
-      posBrd.positions[i*height+coord1] = 1;
-    }
-  });
-
-}   
-
-function registerHit(posBoards,x,y){
-  // ()()==========D
-}   
-
-function drawPosBoards(posBoards){
-  posBoards.forEach(function(pb){
-    if( pb.isVertical ){
-      drawField(pb.positions, pb.sizeX, pb.sizeY, false);
-    }else{
-      drawField(pb.positions, pb.sizeX, pb.sizeY, true);
-    }
-  });
-}
-
-
-function drawHorLine(xl){
-  var i,
-      line;
-  line = '  ';
-  for( i=0; i<xl; i++ ){
-    line += '   ' + i;
-  }
-  console.log(line);
-}
-
-function drawField(field, xl, yl,mirror){
-  var i,
-      j,
-      f,
-      symbol,
-      line;
-  drawHorLine(xl);
-  for( i=0; i<yl; i++ ){
-    line = i + " |";
-    for( j=0; j<xl; j++ ){
-      f = (mirror) ? field[j*xl+i] : field[i*xl+j];
-      if( typeof(f) === "number" ){
-        if( f < 10 ){
-          symbol = '  ' + f;
-        }else{
-          symbol = ' ' + f;
-        }
-      }else{
-        symbol = f ? '  ' + f : '   ';
-      }
-      line += symbol + '|';
-    }
-    console.log(line);
-  }
-  var fieldsummary = field.reduce(function(a,b){return (a+b);},0);
-  if( typeof fieldsummary === "string" ){
-    fieldsummary = fieldsummary.length;
-  }
-  console.log( fieldsummary );
-}
-
-function registerMissRect(posBrds,x1,y1,x2,y2) {
+PositionsBook.prototype.registerMissRect = function (x1,y1,x2,y2) {
   var i,j;
   for(i=x1; i<=x2; i++){
     for(j=y1; j<=y2; j++){
-      registerMiss(posBrds,i,j);
+      this.registerMiss(i,j);
     }
   }
 }
 
 
+var shallowCopy=function(obj){
+  var copy = {};
+  Object.keys(obj).forEach(function(key){
+    copy[key]=obj[key];
+  });
+  return copy;
+};
 
 
-function createSampleField(posBrds) {
-  var i,
-      j,
-      sf = [];
-  for( i=0; i<10; i++ ){
-    for( j=0; j<10; j++ ){
-      sf[i*10+j] = getSample(posBrds,j,i);
-    }
-  }
-  return sf;
-}
