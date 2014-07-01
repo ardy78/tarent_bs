@@ -1,4 +1,6 @@
 var _ = require('underscore');
+var shuffle = require('knuth-shuffle').knuthShuffle;
+
 
 function PositionsBook( opts, posBrds, rs ){
   var options = opts || {};
@@ -129,29 +131,85 @@ PositionsBook.prototype.invalidatePositions = function(ships){
   },this);
 }
 
+// good prob-vector seems to be [0.7,0.5,0.3,0.3,0.5,1,1]
+PositionsBook.prototype.approxRCC = function(probabilities,positionsBook,ships){
+  var posBk = positionsBook || this;
+  var sv    = ships || posBk.remainingShips;
+  var count = 0;
+  var v_pos;
+  var rpc;
+  var probs;
+  var i,n;
+
+  if( !probabilities ) {
+    probs = [];
+    for(i=0,n=sv.length-1; i<n; i++){
+      probs.push(0.5);
+    }
+  }else{
+    probs = probabilities;
+  }
+
+  if( sv.length == 0 ) { return 0 };
+
+  rpc = posBk.remainingPositionsCount(sv.slice(0,1));  
+  if( rpc == 0){
+    return 0;
+  } 
+
+  if( sv.length == 1 ) { return rpc};
+
+  v_pos = posBk.validPositions(sv.slice(0,1));
+debugger;
+  v_pos = shuffle(v_pos).slice(0,Math.floor(probs[0] * v_pos.length)); 
+
+  v_pos.forEach( function( pos ){
+    var cloned_pb = posBk.clone();
+    cloned_pb.registerSunkShip( pos.size, pos.orient, pos.row, pos.col );
+    count += cloned_pb.approxRCC( probs.slice(1), cloned_pb ) 
+  },this);
+  if( v_pos.length > 0 )
+  {
+    count = (count / v_pos.length) * rpc;
+    var f = sv.filter(function(e){
+      return e == sv[0];
+    }).length; 
+  count = Math.round(count / f);
+  }
+
+  return count;
+};
+
+
 PositionsBook.prototype.remainingConfigurationsCount = function(positionsBook,ships){
   var posBk = positionsBook || this;
   var sv    = ships || posBk.remainingShips;
   var count = 0;
   var v_pos;
-debugger;
-  
-  if( sv.length == 0 ) { console.log("svl=0"); return 0 };
-  
-  v_pos = posBk.validPositions(sv.slice(0,1));
-  
-  if( sv.length == 1 ) { console.log("v_pos.l", v_pos.length); return v_pos.length };
+  var rpc;
 
-  console.log("sv", sv); 
+  if( sv.length == 0 ) { return 0 };
+
+  rpc = posBk.remainingPositionsCount(sv.slice(0,1));  
+  if( rpc == 0){
+    return 0;
+  } 
+
+  if( sv.length == 1 ) { return rpc};
+
+  v_pos = posBk.validPositions(sv.slice(0,1));
 
   v_pos.forEach( function( pos ){
     var cloned_pb = posBk.clone();
     cloned_pb.registerSunkShip( pos.size, pos.orient, pos.row, pos.col );
     count += cloned_pb.remainingConfigurationsCount(cloned_pb) 
-    console.log("count", count);
-  });
+  },this);
 
-  return count;
+  var f = sv.filter(function(e){
+   return e == sv[0];
+  }).length; 
+  
+  return count / f;
 };
 
 PositionsBook.prototype.validPositions = function( ships ){
@@ -159,7 +217,7 @@ PositionsBook.prototype.validPositions = function( ships ){
   var pbs = this.positionBoards;
 
   if( ships && ships.length && ships.length > 0){
-    pbs.filter( function(pb) {
+    pbs = pbs.filter( function(pb) {
       return (ships.indexOf(pb.shipSize) >=0 );
     },this);
   };
@@ -169,7 +227,7 @@ PositionsBook.prototype.validPositions = function( ships ){
         v_pos.push( {size: pb.shipSize, 
                      orient: ( (pb.isVertical) ? "vertical" : "horizontal"),
                      row: ( (pb.isVertical) ? ix % pb.sizeY : Math.floor(ix/pb.sizeX) ),
-                     col: ( (pb.isVertical) ? Math.floor(ix / pb.sizeY) : ix % pb.sizeY)
+                     col: ( (pb.isVertical) ? Math.floor(ix / pb.sizeY) : ix % pb.sizeX)
                     } );
       }
     },this);
@@ -183,10 +241,17 @@ PositionsBook.prototype.clone = function() {
 
   var posBrds = [];
   var rs = this.remainingShips.slice(); 
+  var clone_posBrd = function(pb) {
+    var cloned_pb;
+    cloned_pb = shallowCopy(pb);
+    cloned_pb.positions = pb.positions.slice();
+    return cloned_pb;
+  };
+
 
   this.positionBoards.forEach( function (pb) {
-    posBrds.push( pb.clone() );
-  });
+    posBrds.push( clone_posBrd(pb) );
+  },this);
   var pb = new PositionsBook( options, posBrds, rs ); 
 
   return pb;
@@ -228,7 +293,6 @@ PositionsBook.prototype.registerMiss = function( x, y ){
       width,
       offset;
   
-
   this.positionBoards.forEach(function(posBrd){
     coord  = posBrd.isVertical ? y : x;
     width  = posBrd.isVertical ? posBrd.sizeY : posBrd.sizeX;
@@ -239,7 +303,6 @@ PositionsBook.prototype.registerMiss = function( x, y ){
       posBrd.positions[offset+i] = 0;
     }
   },this);
-
 };
 
 
@@ -263,13 +326,6 @@ PositionsBook.prototype.createPositionsBoard =
     pb.positions[i] = 1;
   }
   
-  pb.clone = function() {
-    var cloned_pb;
-    cloned_pb = shallowCopy(pb);
-    cloned_pb.positions = pb.positions.slice();
-    return cloned_pb;
-  }
-
   return pb;
 }
 
