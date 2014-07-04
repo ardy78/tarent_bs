@@ -17,7 +17,9 @@ module.exports = function() {
   var W_NO_POSSIBILITY = '=';
   
   var fleet;
+  var clusterbombed = false;
 
+  var sunkShips = [];
 
   // replace playingField by arena
   var arena = Arena._16x16();
@@ -45,6 +47,33 @@ module.exports = function() {
   };
 
 
+  var getShip = function(state, anyField) {
+
+    var dirs = ["n", "s", "e", "w"];
+
+    var fields = [anyField];
+
+    dirs.forEach(function(dir) {
+      var currentField = anyField;
+      while (true) {
+        currentField = currentField[dir]();
+        if (currentField === undefined) {
+          // moved out of playing field
+          break;
+        }
+        if (state(currentField).type !== "ship") {
+          break;
+        }
+
+        fields.push(currentField);
+      }
+
+    });
+    fields.sort(function(f1, f2) {
+      return f1.num() > f2.num();
+    });
+    return fields;
+  };
 
   var ships = [
     2, 2, 3, 3, 4, 4, 5, 5
@@ -108,6 +137,8 @@ module.exports = function() {
         markSurroundingWater(field);
         handleSunkShip(field);
         console.log("Ship sunk!");
+        sunkShips.push(getShip(state, field));
+//        console.log("sunk ships: ", sunkShips);
       } else if (msg.code == 40) {
         console.log("handeling clusterbomb message, field:", field.toString());
         var markWater = function(f) {
@@ -123,6 +154,9 @@ module.exports = function() {
 
         [field, field.n(), field.w(), field.s(), field.e()].forEach(markWater);
 
+      } else if (msg.code == 44) {
+        console.log("I got clusterbombed");
+        clusterbombed = true;
       }
     });
   };
@@ -186,6 +220,13 @@ module.exports = function() {
     },
     setFleet: function(fl) {
       fleet = fl;
+    },
+    sunkShips: sunkShips,
+    getState: function() {
+      return state;
+    },
+    gotClusterbombed: function () {
+      return clusterbombed;
     } 
   };
 }

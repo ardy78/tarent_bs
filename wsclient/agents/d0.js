@@ -11,6 +11,8 @@ var Fleet = require('../fleet.js');
 
 var RANDOM = true;
 
+var CLUSTERBOMB_BONUS = 50;
+
 module.exports = function() {
   var stateKeeper = StateKeeper();
   var arena = Arena._16x16();
@@ -66,6 +68,42 @@ module.exports = function() {
     }
 
     printPossibilities();
+    // bonus against clusterbombing ships, if there's exactly one 5er remaining ;)
+
+    var cruisers = 0;
+    stateKeeper.sunkShips.forEach(function(ship) {
+      if (ship.length == 5) {
+        cruisers++;
+      }
+    });
+
+    if (cruisers == 1) {
+      if (!stateKeeper.gotClusterbombed) {
+        console.log("NOT APPLYING Clusterbombing Bonus, because enemy doesn't use it");
+      } else {
+        stateKeeper.sunkShips.forEach(function(ship) {
+          if (ship.length = 5) {
+            console.log("applying clusterbombing bonus!");
+            var dirs;
+            if (ship[0].s() === ship[1]) {
+              dirs = ["w", "e"];
+            } else {
+              dirs = ["s", "n"];
+            }
+            ship.forEach(function(field) {
+              dirs.forEach(function(dir) {
+                var next = field;
+                while (typeof next !== "undefined") {
+                  possibilities[next.num()] += CLUSTERBOMB_BONUS;
+                  next = next[dir]();
+                }
+              });
+            });
+          }
+        });
+      }
+    }
+    printPossibilities();
 
     // mark fields with no possible ship as water
     for (var f = 0; f < 16 * 16; f++) {
@@ -81,6 +119,7 @@ module.exports = function() {
         possibilities[f] = 0;
       }
     }
+
   };
 
 
@@ -170,7 +209,21 @@ module.exports = function() {
 
       var finishFields = finishShips();
       if (finishFields.length > 0) {
-        field = randomField(finishFields);
+        calculate_possibilities();
+        printPossibilities();
+        var highestValue = -1;
+        var highestFields = [];
+        finishFields.forEach(function(f) {
+          var val = possibilities[f.num()];
+          if(val > highestValue) {
+            highestValue = val;
+            highestFields = [f];
+          } else if(val === highestValue) {
+            highestFields.push(f);
+          }
+        });
+        field = randomField(highestFields);
+        
         clusterbomb = false;
       } else {
         clusterbomb = stateKeeper.getFleet().specials()[5] > 0;
