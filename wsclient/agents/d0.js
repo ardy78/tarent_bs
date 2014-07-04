@@ -1,5 +1,5 @@
 var StateKeeper = require("./stateKeeper");
-var RandomShipPlacement = require("../tools/randomShipPlacement");
+var RandomShipPlacement = require("../tools/mattisShipPlacement");
 var Arena = require("../arena");
 
 
