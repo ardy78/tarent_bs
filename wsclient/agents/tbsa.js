@@ -182,13 +182,14 @@ module.exports = function() {
 
       state = vesselDetector.scan(state);
       state = freeCounter.scan(state);
-      charm.position(0, 1);
-      console.log(visualizer.render(fleet.visualize, state.visualize));
-      charm.erase("down");
-      console.log("some statistics from your fleet admiral:");
-      console.log(fleet.vessels().map(function(v) {
-       return v.size + "@" + v.head + ": " + v.missed;
-      }).join("\n"));
+
+      //charm.position(0, 1);
+      //console.log(visualizer.render(fleet.visualize, state.visualize));
+      //charm.erase("down");
+      //console.log("some statistics from your fleet admiral:");
+      //console.log(fleet.vessels().map(function(v) {
+     //  return v.size + "@" + v.head + ": " + v.missed;
+     // }).join("\n"));
 
       var f;
 
