@@ -28,11 +28,11 @@ module.exports = function() {
   var statistic = Statistic(arena);
   var heatMap;
   var resetHeatMap = function() {
-    console.log("reset heatmap");
+    //console.log("reset heatmap");
     heatMap = HeatMap(arena);
   };
   var updateHeatMap = function() {
-    console.log("update heatmap");
+    //console.log("update heatmap");
     var weight = function(fld, i) {
       return 1 / (1 + i);
     };
@@ -51,7 +51,7 @@ module.exports = function() {
 
   var placeShips = function(emit) {
     var cost = heatMap.convolve(gaussKernel).normalize();
-    console.log(Visualizer(arena).render(cost));
+    //console.log(Visualizer(arena).render(cost));
     var accept = function(ships) {
       var f = Fleet(arena, ships);
       return f.specials()[5] > 3;
@@ -62,7 +62,7 @@ module.exports = function() {
       return ship.asFields();
     }));
 
-    console.log("placement:",ships.map(function(ship){return ship.asPlacement();}));
+    //console.log("placement:",ships.map(function(ship){return ship.asPlacement();}));
 
     emit(ships);
   };
@@ -70,7 +70,7 @@ module.exports = function() {
   var processMessage = function(msg) {
     var f = msg.field ? Field(msg.field) : lastAttackedField;
     if (!f) {
-      console.log("WARNING: no field");
+      //console.log("WARNING: no field");
     }
     fleet.message(msg, f);
     statistic.message(msg, f);
@@ -79,7 +79,7 @@ module.exports = function() {
         state(f).type = "water";
       },
       31: function(f) {
-        console.log("treffer", f.toString());
+        //console.log("treffer", f.toString());
         state(f).type = "ship";
       },
       32: function(f) {
@@ -97,7 +97,7 @@ module.exports = function() {
       }
     }[msg.code];
 
-    console.log("code",msg.code,"action",interprete);
+    //console.log("code",msg.code,"action",interprete);
 
     if (typeof interprete !== "undefined") {
       interprete(f);
@@ -187,7 +187,7 @@ module.exports = function() {
       charm.erase("down");
       console.log("some statistics from your fleet admiral:");
       console.log(fleet.vessels().map(function(v) {
-        return v.size + "@" + v.head + ": " + v.missed;
+       return v.size + "@" + v.head + ": " + v.missed;
       }).join("\n"));
 
       var f;
@@ -199,28 +199,28 @@ module.exports = function() {
 
       var randomCBFields = createRandomCBFields();
 
-      // console.log("randomFields:",randomFields.map(function(f){return f.toString();}).join(", "));
+      // //console.log("randomFields:",randomFields.map(function(f){return f.toString();}).join(", "));
 
       do {
         f = recommendedFields.pop();
       } while (typeof f !== "undefined" && (state(f).type || state(f).tried));
 
       if (f) {
-        console.log("attacking recommended field", f.toString());
+        //console.log("attacking recommended field", f.toString());
         callback(f.toString());
       } else {
         if (fleet.specials()[5] > 0) {
           do {
             f = randomCBFields.pop();
           } while (typeof f !== "undefined" && (state(f).type || state(f).tried));
-          console.log("specials", fleet.specials());
-          console.log("clusterombing random field", f.toString());
+          //console.log("specials", fleet.specials());
+          //console.log("clusterombing random field", f.toString());
           callback("+" + f.toString());
         } else {
           do {
             f = randomFields.pop();
           } while (typeof f !== "undefined" && (state(f).type || state(f).tried));
-          console.log("attacking random field", f.toString());
+          //console.log("attacking random field", f.toString());
           callback(f.toString());
         }
       }
