@@ -27,6 +27,9 @@ module.exports = function(emit, actions, states) {
       console.log('entered playing-state');
       msgList=[];
       //yourTurn(); 
+      if(typeof actions.newRound ==="function"){
+        actions.newRound();
+      }
       
     },
     defaultAction: function(msg) {

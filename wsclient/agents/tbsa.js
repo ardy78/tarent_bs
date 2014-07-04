@@ -29,9 +29,7 @@ module.exports = function() {
   var heatMap;
   var resetHeatMap = function() {
     console.log("reset heatmap");
-    heatMap = HeatMap(arena, function() {
-      return 1;
-    }).normalize();
+    heatMap = HeatMap(arena);
   };
   var updateHeatMap = function() {
     console.log("update heatmap");
@@ -53,9 +51,9 @@ module.exports = function() {
 
   var placeShips = function(emit) {
     var cost = heatMap.convolve(gaussKernel).normalize();
+    console.log(Visualizer(arena).render(cost));
     var accept = function(ships) {
       var f = Fleet(arena, ships);
-      console.log(Visualizer(arena).render(f.visualize));
       return f.specials()[5] > 3;
     };
     var ships = AdaptivePlacement(arena, cost, accept).placeShips();
@@ -72,13 +70,11 @@ module.exports = function() {
   var processMessage = function(msg) {
     var f = msg.field ? Field(msg.field) : lastAttackedField;
     if (!f) {
-      return;
+      console.log("WARNING: no field");
     }
     fleet.message(msg, f);
     statistic.message(msg, f);
     var interprete = {
-      37: updateHeatMap,
-      33: updateHeatMap,
       30: function(f) {
         state(f).type = "water";
       },
@@ -100,6 +96,8 @@ module.exports = function() {
         [f, f.n(), f.w(), f.s(), f.e()].forEach(markWater);
       }
     }[msg.code];
+
+    console.log("code",msg.code,"action",interprete);
 
     if (typeof interprete !== "undefined") {
       interprete(f);
@@ -172,6 +170,7 @@ module.exports = function() {
       state = State();
     },
     newMatch: resetHeatMap,
+    newRound: updateHeatMap,
     name: function() {
       return "tbsa";
     },

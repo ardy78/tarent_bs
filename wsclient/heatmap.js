@@ -14,12 +14,14 @@ module.exports = function(arena, init) {
       }
     });
     state = state.clone();
-    arena.scan(function(f) {
-      var s = state(f);
-      if (typeof s.heat === "number") {
-        s.heat /= sum;
-      }
-    });
+    if (sum !== 0) {
+      arena.scan(function(f) {
+        var s = state(f);
+        if (typeof s.heat === "number") {
+          s.heat /= sum;
+        }
+      });
+    }
     return state;
   };
 
