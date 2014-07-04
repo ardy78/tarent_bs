@@ -21,7 +21,7 @@ module.exports = function(imp, resp) {
 
   return makeMx(N,M, function(n, m) {
     return sumMx(N, M, function(i, j) {
-      return f(i, j) * g(n - i, m - j);
+      return f(i, j) * g(i- n, j-m);
     });
   });
 };

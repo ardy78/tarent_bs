@@ -11,6 +11,11 @@ module.exports=function(emit,actions,states){
       }
 
     },
+    9: function(){
+      if(typeof actions.newMatch==="function"){
+        actions.newMatch();
+      }
+    },
     0: function(){
       return states.busy;
     },

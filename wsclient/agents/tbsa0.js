@@ -9,10 +9,6 @@ var SunkShipHandler = require("../tools/shipSunkHandler.js");
 var shuffle = require('knuth-shuffle').knuthShuffle;
 var Fleet = require('../fleet.js');
 var charm = require('charm')();
-var Statistic = require("../statistic.js");
-var HeatMap = require("../heatmap.js");
-var GaussKernel = require("../gauss-kernel.js");
-var AdaptivePlacement = require("../adaptive-placement.js");
 charm.pipe(process.stdout);
 //charm.reset();
 module.exports = function() {
@@ -25,48 +21,25 @@ module.exports = function() {
   var state = State();
   var sunkShipHandler = SunkShipHandler();
   var fleet;
-  var statistic = Statistic(arena);
-  var heatMap;
-  var resetHeatMap = function() {
-    console.log("reset heatmap");
-    heatMap = HeatMap(arena, function() {
-      return 1;
-    }).normalize();
-  };
-  var updateHeatMap = function() {
-    console.log("update heatmap");
-    var weight = function(fld, i) {
-      return 1 / (1 + i);
+  var decorateShips = function(delegatee) {
+    var commit;
+    var decorateEmit = function(emit) {
+      return function(ships) {
+        fleet = Fleet(arena, ships.map(function(ship) {
+          return ship.asFields();
+        }));
+        console.log("fleet placement results in specials:", JSON.stringify(fleet.specials(), null, "  "));
+        commit = function() {
+          emit(ships);
+        };
+      };
     };
-    heatMap.add(statistic.attackedFields, weight);
-    statistic = Statistic(arena);
-  };
-
-
-  var gaussKernel =
-  /* [
-  [1/16,2/16,1/16],
-  [2/16,4/16,2/16],
-  [1/16,2/16,1/16],
-  ];*/
-  GaussKernel(7);
-
-  var placeShips = function(emit) {
-    var cost = heatMap.convolve(gaussKernel).normalize();
-    var accept = function(ships) {
-      var f = Fleet(arena, ships);
-      console.log(Visualizer(arena).render(f.visualize));
-      return f.specials()[5] > 3;
+    return function(emit) {
+      do {
+        delegatee(decorateEmit(emit));
+      } while (fleet.specials()[5] < 5);
+      commit();
     };
-    var ships = AdaptivePlacement(arena, cost, accept).placeShips();
-
-    fleet = Fleet(arena, ships.map(function(ship) {
-      return ship.asFields();
-    }));
-
-    console.log("placement:",ships.map(function(ship){return ship.asPlacement();}));
-
-    emit(ships);
   };
 
   var processMessage = function(msg) {
@@ -75,10 +48,7 @@ module.exports = function() {
       return;
     }
     fleet.message(msg, f);
-    statistic.message(msg, f);
     var interprete = {
-      37: updateHeatMap,
-      33: updateHeatMap,
       30: function(f) {
         state(f).type = "water";
       },
@@ -90,6 +60,7 @@ module.exports = function() {
         state = sunkShipHandler.handleSunkShip(state, f);
       },
       40: function(f) {
+        console.log("TODO: implement clusterbombed 40 ", f.toString());
         var markWater = function(f) {
           var s = state(f);
           if (typeof s.type === "undefined") {
@@ -171,11 +142,10 @@ module.exports = function() {
     reset: function() {
       state = State();
     },
-    newMatch: resetHeatMap,
     name: function() {
-      return "tbsa";
+      return "tbsa@" + process.pid;
     },
-    ships: placeShips,
+    ships: decorateShips(RandomShipPlacement()),
     //  ships:RandomShipPlacement(),
     attack: function(messages, callback) {
 

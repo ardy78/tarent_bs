@@ -2,6 +2,7 @@ var Arena = function(options) {
   var rows = options.rows;
   var columns = options.columns;
   var random = options.random;
+  var WeightedRandom = require("./weighted-random.js");
   if (typeof random !== "function") {
     random = Math.random;
   }
@@ -17,7 +18,7 @@ var Arena = function(options) {
     if (typeof spec === "string" && typeof options.parseOrdinal === "function") {
       return options.parseOrdinal(spec);
     }
-    if(typeof spec === "object" && typeof spec.num === "function"){
+    if (typeof spec === "object" && typeof spec.num === "function") {
       return spec.num();
     }
   };
@@ -113,20 +114,30 @@ var Arena = function(options) {
     randomField: function() {
       return Field(Math.floor(random() * rows * columns));
     },
-    scan: function(cb){
-      for(var i=0;i<rows*columns;i++){
+    weightedRandom: function(weight) {
+      var weights = [];
+      this.scan(function(f) {
+        weights[f.num()] = weight(f);
+      });
+      var random = WeightedRandom(weights,random);
+      return function() {
+        return Field(random());
+      };
+    },
+    scan: function(cb) {
+      for (var i = 0; i < rows * columns; i++) {
         cb(Field(i));
       }
     },
-    filter: function(cb){
+    filter: function(cb) {
       var r = [];
-      for(var i=0;i<rows*columns;i++){
-        if(cb(Field(i))){
+      for (var i = 0; i < rows * columns; i++) {
+        if (cb(Field(i))) {
           r.push(Field(i));
         }
       }
       return r;
-      
+
     }
   };
 };
@@ -165,7 +176,7 @@ module.exports._16x16 = function(options) {
     },
     renderField: function(field) {
       var str = field.num().toString(16);
-      return "00".substr(str.length)+str;
+      return "00".substr(str.length) + str;
     },
     rowLabel: function(n) {
       return n.toString(16);
