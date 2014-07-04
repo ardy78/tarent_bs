@@ -3,7 +3,11 @@ var RandomShipPlacement = require("../tools/randomShipPlacement");
 var Arena = require("../arena");
 
 
+
 var PositionBook = require("../position-book");
+
+
+var Fleet = require('../fleet.js');
 
 var RANDOM = true;
 
@@ -14,6 +18,27 @@ module.exports = function() {
 
   var attacksCounter = 0;
 
+
+  var decorateShips = function(delegatee) {
+    var commit;
+    var decorateEmit = function(emit) {
+      return function(ships) {
+        stateKeeper.setFleet(Fleet(arena, ships.map(function(ship) {
+          return ship.asFields();
+        })));
+        console.log("fleet placement results in specials:", JSON.stringify(stateKeeper.getFleet().specials(), null, "  "));
+        commit = function() {
+          emit(ships);
+        };
+      };
+    };
+    return function(emit) {
+      do {
+        delegatee(decorateEmit(emit));
+      } while (stateKeeper.getFleet().specials()[5] < 5);
+      commit();
+    };
+  };
 
 
   var possibilities = [];
@@ -36,7 +61,7 @@ module.exports = function() {
 
     for (var x = 0; x < 16; x++) {
       for (var y = 0; y < 16; y++) {
-        possibilities[16 * y + x] = posBook.getSample(x, y, true);
+        possibilities[16 * y + x] = posBook.getSample(x, y, false);
       }
     }
 
@@ -93,38 +118,42 @@ module.exports = function() {
   var randomField = function(fields) {
     if (RANDOM) {
       var index = Math.floor(Math.random() * fields.length);
-      console.log("[RANDOM] selected field " + index+1 + " of " + fields.length, fields[index].toString());
+      console.log("[RANDOM] selected field " + (index + 1) + " of " + fields.length, fields[index].toString());
       return fields[index];
     } else {
       return fields[0];
     }
   }
 
-  var findFieldToAttack = function() {
+  var findFieldToAttack = function(clusterbomb) {
 
-    var finishFields = finishShips();
-    if (finishFields.length > 0) {
-      return randomField(finishFields);
-    }
     calculate_possibilities();
     printPossibilities();
     var highestValue = -1;
     var highestPositions;
     for (var f = 0; f < 16 * 16; f++) {
-      if (possibilities[f] > highestValue) {
-        highestValue = possibilities[f];
+      var value;
+      if (!clusterbomb) {
+        value = possibilities[f];
+      } else {
+        if (f < 16 || f >= 15 * 16 || f % 16 === 0 || f % 16 === 15) {
+          value = 0;
+        } else {
+          value = possibilities[f] + possibilities[f - 1] + possibilities[f + 1] + possibilities[f - 16] + possibilities[f + 16];
+        }
+      }
+      if (value > highestValue) {
+        highestValue = value;
         highestPositions = [f];
-      } else if (possibilities[f] === highestValue) {
-        highestPositions.push[f];
+      } else if (value === highestValue) {
+        highestPositions.push(f);
       }
     }
     var fields = [];
     highestPositions.forEach(function(p) {
       fields.push(stateKeeper.arena.field(p));
     });
-    fields.forEach(function(f) {
-      console.log("[RANDOM] Possible field: ", f.toString());
-    });
+    //    console.log("[RANDOM] Possible fields: ", fields);
     return randomField(fields);
   };
   return {
@@ -132,14 +161,30 @@ module.exports = function() {
       //emitName("tarent bullship");
       return "d0";
     },
-    ships: RandomShipPlacement(),
+    ships: decorateShips(RandomShipPlacement()),
     attack: function(messages, callback) {
       stateKeeper.handleMessages(messages);
       stateKeeper.printField();
-      var field = findFieldToAttack();
+      var field;
+      var clusterbomb;
+
+      var finishFields = finishShips();
+      if (finishFields.length > 0) {
+        field = randomField(finishFields);
+        clusterbomb = false;
+      } else {
+        clusterbomb = stateKeeper.getFleet().specials()[5] > 0;
+        field = findFieldToAttack(clusterbomb);
+      }
       stateKeeper.attacking(field);
       console.log("attack #" + attacksCounter++, "Field:", field.toString());
-      callback(field.toString());
+
+      if (clusterbomb) {
+        console.log("THIS IS A CLUSTERBOMB!!!");
+        callback("+" + field.toString());
+      } else {
+        callback(field.toString());
+      }
     },
     reset: function() {
       stateKeeper = StateKeeper();

@@ -6,6 +6,7 @@ var VesselDetector = require("../vessel-detector");
 
 var Visualizer = require("../visualizer");
 
+var Fleet = require('../fleet.js');
 module.exports = function() {
 
 
@@ -14,6 +15,8 @@ module.exports = function() {
   var W_CORNER = 3;
   var W_SUNK = 4;
   var W_NO_POSSIBILITY = '=';
+  
+  var fleet;
 
 
   // replace playingField by arena
@@ -84,7 +87,9 @@ module.exports = function() {
 
   var handleMessages = function(messages) {
     messages.forEach(function(msg) {
-      var field = lastAttackedField;
+      var field = msg.field ? arena.field(msg.field) : lastAttackedField;
+     
+      fleet.message(msg, field);
       debugger;
       if (msg.code == 30) {
         if (field) { //BUGFIX on roundchange
@@ -103,6 +108,21 @@ module.exports = function() {
         markSurroundingWater(field);
         handleSunkShip(field);
         console.log("Ship sunk!");
+      } else if (msg.code == 40) {
+        console.log("handeling clusterbomb message, field:", field.toString());
+        var markWater = function(f) {
+          console.log("[markWater]", f.toString());
+          var s = state(f);
+          if (typeof s.type === "undefined" || s.type == "unknown") {
+            s.type = "water";
+            console.log("mark field " + f.toString() + " as water (clusterbomb)");
+          } else {
+            console.log(s.type);
+          }
+        };
+
+        [field, field.n(), field.w(), field.s(), field.e()].forEach(markWater);
+
       }
     });
   };
@@ -160,6 +180,12 @@ module.exports = function() {
     },
     setWater: setWater,
     arena: arena,
-    state: state
+    state: state,
+    getFleet: function() {
+      return fleet;
+    },
+    setFleet: function(fl) {
+      fleet = fl;
+    } 
   };
 }
